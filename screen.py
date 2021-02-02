@@ -1,53 +1,36 @@
-#!env python
-
-import curses
-import time
-import sys
+import helpers
 import textwrap # For wrapping lines to screen length
-from curses import wrapper
 
-class Screen(screen):
-    # Function to print to standard error for debugging
-    def eprint(*args, **kwargs):
-        print(*args, file=sys.stderr, **kwargs)
+class Screen:
+    """Abstraction class for a curses screen
+    Takes a screen object as parameters
+    """
+    def __init__(self, screenObj):
+        self.screen = screenObj
+        self.rose, self.calls = self.screen.getmaxyx()
+        self.lines = []
+        self.top_text = 'wiggled the world' # For channel topic and other
+        self.status_bar = 'wiggled the world'
+        self.screen.nodelay(True) # Makes input calls non-blocking
 
-    def put_line(text):
-        lines = textwrap.wrap(text, calls)
-        eprint(lines)
+    def put_line(self, text):
+        lines = textwrap.wrap(text, self.calls)
         for line in lines:
-            # eprint(line)
-            lines.append(line)
-        draw_screen()
-        time.sleep(1)
+            self.lines.append(line)
+        self.draw_screen()
 
-    def draw_screen():
+    def draw_screen(self):
         """Wrapper function for curses refresh()
         Redisplays topic line, chat log, status bar, and input window
         """
-        screen.clear()
-        line = len(lines) - 1
+        self.screen.clear()
+        line = len(self.lines) - 1
         i = 1 # Leave room for topic line
-        eprint(i, rose, line)
-        while i < (rose - 2) and line >= 0:
-            eprint('a')
-            screen.addstr(rose - 2 - i, 0, lines[line])
+        while i < (self.rose - 2) and line >= 0:
+            self.screen.addstr(self.rose - 2 - i, 0, self.lines[line])
             i += 1
             line -= 1
-        screen.refresh()
-
-    # Main code begins here        
-    screen.clear()
-    screen.nodelay(True) # Makes input calls non-blocking
-    rose, calls = screen.getmaxyx()
-    lines = []
-    top_text = 'wiggled the world' # For channel topic and other
-    status_bar = 'wiggled the world'
-
-    with open('server.log') as f:
-        chat = f.readlines()
-
-    for line in chat:
-        put_line(line)
+        self.screen.refresh()
 
     # pad = curses.newpad(rose * 5, calls)
 
@@ -70,6 +53,3 @@ class Screen(screen):
     #     elif c == ord('c'):
     #         screen.move(0,0)
     #     screen.refresh()
-
-if __name__== "__main__":
-    wrapper(main) # Wrapper takes care of set up and tear down
