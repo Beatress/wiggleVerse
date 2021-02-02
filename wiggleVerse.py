@@ -4,6 +4,7 @@ import curses
 import time
 import helpers
 import screen
+import irc
 from screen import Screen
 
 def main(screenObj):
@@ -11,7 +12,6 @@ def main(screenObj):
     Uses Screen and IRC objects
     """
 
-    helpers.eprint('w')
     screen = Screen(screenObj) # create Screen object
     with open('server.log') as f:
         chat = f.readlines()
