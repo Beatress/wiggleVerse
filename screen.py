@@ -10,7 +10,7 @@ class Screen:
         self.screen = screenObj
         self.rose, self.calls = self.screen.getmaxyx()
         self.lines = []
-        self.top_text = 'WiggleChat v.01' # For channel topic and other
+        self.top_text = 'WiggleChat v.02' # For channel topic and other
         self.status_bar = 'Let\'s Wiggle the World!'
         self.screen.nodelay(True) # Makes input calls non-blocking
 
