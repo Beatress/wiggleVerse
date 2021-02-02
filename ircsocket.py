@@ -44,9 +44,56 @@ class IrcSocket:
     def disconnect(self):
         """Attempt to cleanly close the socket"""
         self.connected = False
+        helpers.eprint('Shutdown requested')
 
         try:
-            self.socket.shutdown()
+            self.socket.shutdown(socket.SHUT_RDWR)
+
+        except OSError as err:
+            error_message = f"Disconnection failed: {err}"
+            raise OSError(error_message)
+
+        finally: # Run clean up code
+            helpers.eprint('Running socket clean up code')            
+            self.socket.close()
+
+    def put_raw(self, text):
+        """Attempts to send a raw command to the server"""
+        if not self.connected:
+            raise SocketNotConnected
+
+        if text == '':
+            return True
+
+        message = f"{text}, {LINE_ENDINGS}".encode(ENCODING)
+
+        self.socket.settimeout(SEND_TIMEOUT)
+
+        # Send until all bytes are sent or a timeout or error occurs
+        try:
+            bytes_sent = self.socket.sendall(message)
+
+        except socket.timeout:
+            raise SocketTimeout
+
+        except OSError as err:
+            error_message = f"Send failed: {err}"
+            raise OSError(error_message)
+
+        else:
+            # If send works but returns 0 bytes, the connection was terminated
+            if bytes_sent == 0:
+                self.connected = False
+                self.socket.close()
+                raise SocketConnectionBroken
+        helpers.eprint(f"Sent {bytes_sent} successfully")
+
+    def get_raw(self): 
+        """Attempts to receive data from the IRC server"""
+        if not self.connected:
+            raise SocketNotConnected
+
+        
 
 
 
@@ -61,4 +108,12 @@ class SocketAlreadyConnected(OSError):
 
 class SocketTimeout(OSError):
     def __init__(self, message='Connection failed: Socket timed out', errors=None):
+        super().__init__(message, errors)
+
+class SocketNotConnected(OSError):
+    def __init__(self, message='You attempted to send/receive data, but socket isn\'t connected', errors=None):
+        super().__init__(message, errors)
+
+class SocketConnectionBroken(OSError):
+    def __init__(self, message='The socket connection broke unexpectedly', errors=None):
         super().__init__(message, errors)
