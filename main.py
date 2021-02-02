@@ -2,11 +2,21 @@
 
 import curses
 import time
+import sys
+import textwrap # For wrapping lines to screen length
 from curses import wrapper
 
-def main(screen):
+class Screen(screen):
+    # Function to print to standard error for debugging
+    def eprint(*args, **kwargs):
+        print(*args, file=sys.stderr, **kwargs)
+
     def put_line(text):
-        lines.append(text)
+        lines = textwrap.wrap(text, calls)
+        eprint(lines)
+        for line in lines:
+            # eprint(line)
+            lines.append(line)
         draw_screen()
         time.sleep(1)
 
@@ -16,11 +26,13 @@ def main(screen):
         """
         screen.clear()
         line = len(lines) - 1
-        i = 0
-        while i < (rose - 2) and i > 0 and index >= 0:
+        i = 1 # Leave room for topic line
+        eprint(i, rose, line)
+        while i < (rose - 2) and line >= 0:
+            eprint('a')
             screen.addstr(rose - 2 - i, 0, lines[line])
             i += 1
-            index -= 1
+            line -= 1
         screen.refresh()
 
     # Main code begins here        
@@ -28,7 +40,7 @@ def main(screen):
     screen.nodelay(True) # Makes input calls non-blocking
     rose, calls = screen.getmaxyx()
     lines = []
-    top_text = 'wiggled the world'
+    top_text = 'wiggled the world' # For channel topic and other
     status_bar = 'wiggled the world'
 
     with open('server.log') as f:
