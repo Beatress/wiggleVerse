@@ -1,5 +1,6 @@
 import helpers
 import textwrap # For wrapping lines to screen length
+import curses
 
 class Screen:
     """Abstraction class for a curses screen
@@ -9,11 +10,24 @@ class Screen:
         self.screen = screenObj
         self.rose, self.calls = self.screen.getmaxyx()
         self.lines = []
-        self.top_text = 'wiggled the world' # For channel topic and other
-        self.status_bar = 'wiggled the world'
+        self.top_text = 'WiggleChat v.01' # For channel topic and other
+        self.status_bar = 'Let\'s Wiggle the World!'
         self.screen.nodelay(True) # Makes input calls non-blocking
 
+        # create color pairs
+        """
+        1: Chat text
+        2: Status bar text 
+        3: Title bar text
+        """
+        curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_CYAN)
+        curses.init_pair(3, curses.COLOR_MAGENTA, curses.COLOR_BLUE)
+
     def put_line(self, text):
+        """Adds a line to the internal list of lines
+        TODO: Trim and keep a scroll back
+        """
         lines = textwrap.wrap(text, self.calls)
         for line in lines:
             self.lines.append(line)
@@ -24,13 +38,34 @@ class Screen:
         Redisplays topic line, chat log, status bar, and input window
         """
         self.screen.clear()
+        self.draw_status()
+        self.draw_top_text()
+
         line = len(self.lines) - 1
         i = 1 # Leave room for topic line
         while i < (self.rose - 2) and line >= 0:
-            self.screen.addstr(self.rose - 2 - i, 0, self.lines[line])
+            self.screen.addstr(self.rose - 2 - i, 0, self.lines[line],
+            curses.color_pair(1))
             i += 1
             line -= 1
+
+        # Move the cursor to correct place on input line
+        # TODO: Make this dynamic
+        self.screen.move(self.rose - 1, 0)
         self.screen.refresh()
+
+    def draw_status(self):
+        """Draws the status""" 
+        self.screen.addstr(self.rose - 2, 0, self.status_bar[:self.calls],
+        curses.color_pair(2))
+
+    def draw_top_text(self):
+        """Draws the top text
+        This is usually used for the channel topic
+        """ 
+        self.screen.addstr(0, 0, self.top_text[:self.calls],
+        curses.color_pair(3))
+
 
     # pad = curses.newpad(rose * 5, calls)
 
