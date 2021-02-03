@@ -90,6 +90,7 @@ class IrcSocket:
         helpers.eprint(f"Sent {bytes_sent} successfully")
 
     def get_raw(self): 
+        self.socket.setblocking(0)
         """Attempts to receive data from the IRC server
         Returns a list of lines"""
         if not self.connected:
@@ -99,8 +100,8 @@ class IrcSocket:
             self.socket.settimeout(RECV_TIMEOUT)
             data = self.socket.recv(MAX_RECV_BYTES)
 
-            except socket.timeout:
-                raise SocketTimeout
+        except socket.timeout:
+            raise SocketTimeout
 
         except OSError as err:
             error_message = f"Receive failed: {err}"
@@ -115,6 +116,7 @@ class IrcSocket:
             text = data.decode(ENCODING)
             lines = text.split(LINE_ENDINGS)
 
+            self.socket.setblocking(1)
             return lines
 
 

@@ -1,18 +1,23 @@
 import helpers
 import textwrap # For wrapping lines to screen length
 import curses
+import curses.ascii
+import ircsocket
 
 class Screen:
     """Abstraction class for a curses screen
     Takes a screen object as parameters
     """
-    def __init__(self, screenObj):
+    def __init__(self, screenObj, send_callback):
         self.screen = screenObj
         self.rose, self.calls = self.screen.getmaxyx()
         self.lines = []
-        self.top_text = 'WiggleChat v.02' # For channel topic and other
+        self.top_text = 'WiggleChat v.03' # For channel topic and other
         self.status_bar = 'Let\'s Wiggle the World!'
-        self.screen.nodelay(True) # Makes input calls non-blocking
+        self.input = ""
+        self.curs_pos = 0
+        self.screen.nodelay(0) # Makes input calls non-blocking
+        self.send_callback = send_callback
 
         # create color pairs
         """
@@ -40,6 +45,7 @@ class Screen:
         self.screen.clear()
         self.draw_status()
         self.draw_top_text()
+        self.draw_input()
 
         line = len(self.lines) - 1
         i = 1 # Leave room for topic line
@@ -51,21 +57,69 @@ class Screen:
 
         # Move the cursor to correct place on input line
         # TODO: Make this dynamic
-        self.screen.move(self.rose - 1, 0)
+        self.screen.move(self.rose - 1, self.curs_pos)
+        helpers.eprint(self.curs_pos, self.calls)
+
         self.screen.refresh()
 
     def draw_status(self):
         """Draws the status""" 
-        self.screen.addstr(self.rose - 2, 0, self.status_bar[:self.calls],
+        # Pad status text to fill background bar
+        status_bar_filled = self.status_bar + " " * (self.calls - len(self.status_bar))
+
+        self.screen.addstr(self.rose - 2, 0, status_bar_filled[:self.calls],
         curses.color_pair(2))
 
     def draw_top_text(self):
         """Draws the top text
         This is usually used for the channel topic
         """ 
-        self.screen.addstr(0, 0, self.top_text[:self.calls],
+        # Pad top text to fill background bar
+        top_bar = self.top_text + " " * (self.calls - len(self.top_text))
+        self.screen.addstr(0, 0, top_bar[:self.calls],
         curses.color_pair(3))
 
+    def draw_input(self):
+        """Draws the input text
+        This keeps track of the current line being typed"""
+        length = len(self.input)
+        if length >= self.calls:
+            start = length - self.calls - 1
+            end = start + self.calls - 1
+        else:
+            start = 0
+            end = length
+        try:
+            self.screen.addstr(self.rose-1, 0, self.input[start:end])
+        except:
+            helpers.eprint(start, end, self.calls)
+            
+    def doRead(self):
+        """Get input. This should be executed in its own thread?"""
+        curses.noecho()
+        c = self.screen.getch() # read a character
+        if str(c) == curses.KEY_BACKSPACE or c == 127 and len(self.input) > 0:
+            helpers.eprint('backspace')
+            self.curs_pos -= 1
+            self.input = self.input[:-1]
+        
+        elif str(c) == curses.KEY_ENTER or c == 10:
+            helpers.eprint('enter')
+            self.put_line(self.input)
+            self.send_callback(self.input)
+            self.input = ""
+            self.curs_pos = 0
+
+        elif curses.ascii.isprint(c):
+            try:
+                self.input = self.input + chr(c)
+                if self.curs_pos < self.calls - 1:
+                    self.curs_pos += 1
+            except ValueError:
+                helpers.eprint('ValueError')
+                # Ignore certain special character codes for application start
+
+        self.draw_screen()
 
     # pad = curses.newpad(rose * 5, calls)
 
