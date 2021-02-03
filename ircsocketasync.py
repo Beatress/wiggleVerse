@@ -2,8 +2,8 @@
 # Thanks Chad!
 
 import socket
-import helpers
 import asyncio
+import helpers
 
 ENCODING = 'UTF-8'       # The method for encoding and decoding all messages (UTF-8 allows 4 bytes max per char)
 LINE_ENDINGS = '\r\n'    # This is appended to all messages sent by the socket (should always be CRLF)
@@ -18,20 +18,22 @@ class IrcSocket:
 
     def __init__(self):
         """Basic initialization of the socket"""
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connected = False
+        self.reader = False
+        self.writer = False
 
-    def connect(self, host, port):
+    async def connect(self, host, port):
         """Connects to an IRC server"""
         if self.connected:
             raise SocketAlreadyConnected
 
-        self.socket.settimeout(CONNECTION_TIMEOUT)
         # Attempt to make the connection
+        # If successful this returns a reader and writer stream object
         try:
-            self.socket.connect((host, port))
+            self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(host, port),
+            CONNECTION_TIMEOUT)            
 
-        except socket.timeout:
+        except asyncio.TimeoutError:
             raise SocketTimeout
 
         except OSError as err:
@@ -39,16 +41,18 @@ class IrcSocket:
             raise OSError(error_message)
 
         else: # Connection Successful!
+            helpers.eprint('connected!')
             self.connected = True
             return True
 
-    def disconnect(self):
+    async def disconnect(self):
         """Attempt to cleanly close the socket"""
         self.connected = False
         helpers.eprint('Shutdown requested')
 
         try:
-            self.socket.shutdown(socket.SHUT_RDWR)
+            self.writer.close()
+            await self.writer.wait_closed()
 
         except OSError as err:
             error_message = f"Disconnection failed: {err}"
@@ -58,7 +62,7 @@ class IrcSocket:
             helpers.eprint('Running socket clean up code')            
             self.socket.close()
 
-    def put_raw(self, text):
+    async def put_raw(self, text):
         """Attempts to send a raw command to the server"""
         if not self.connected:
             raise SocketNotConnected
@@ -66,56 +70,47 @@ class IrcSocket:
         if text == '':
             return True
 
-        message = f"{text}{LINE_ENDINGS}".encode(ENCODING)
-
-        self.socket.settimeout(SEND_TIMEOUT)
+        message = (text + LINE_ENDINGS).encode(ENCODING)
+        print(message)
+        helpers.eprint(message)
 
         # Send until all bytes are sent or a timeout or error occurs
         try:
-            bytes_sent = self.socket.sendall(message)
+            await asyncio.wait_for(await self.writer.write(message), SEND_TIMEOUT)
+            await self.writer.drain()
+            helpers.eprint('sent!')
 
-        except socket.timeout:
+        except asyncio.TimeoutError:
             raise SocketTimeout
 
         except OSError as err:
             error_message = f"Send failed: {err}"
             raise OSError(error_message)
 
-        else:
-            # If send works but returns 0 bytes, the connection was terminated
-            if bytes_sent == 0:
-                self.connected = False
-                self.socket.close()
-                raise SocketConnectionBroken
-        helpers.eprint(f"Sent {bytes_sent} successfully")
-
-    def get_raw(self): 
-        """Attempts to receive data from the IRC server
-        Returns a list of lines"""
+    async def get_raw(self): 
+        """Attempts to receive data from the IRC server"""
         if not self.connected:
             raise SocketNotConnected
 
+        # Attempts to get one line from the socket
         try:
-            self.socket.settimeout(RECV_TIMEOUT)
-            data = self.socket.recv(MAX_RECV_BYTES)
+            data = await asyncio.wait_for(self.reader.readline(), RECV_TIMEOUT)
+            line = data.decode(ENCODING)
 
-            except socket.timeout:
-                raise SocketTimeout
+        except asyncio.TimeoutError:
+            raise SocketTimeout
 
         except OSError as err:
-            error_message = f"Receive failed: {err}"
+            error_message = f"Send failed: {err}"
             raise OSError(error_message)
 
-        else: # We succeeded in receiving data
-            # If recv works but returns 0 bytes, the connection was terminated
-            if data == b'': # 
-                self.connected = False
-                raise SocketConnectionBroken
+        return line
 
-            text = data.decode(ENCODING)
-            lines = text.split(LINE_ENDINGS)
 
-            return lines
+
+
+
+
 
 
 
