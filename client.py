@@ -6,6 +6,7 @@ from irc import Irc
 from ircsocket import IrcSocket
 from screen import Screen
 import threading
+from exceptions import *
 
 class Client:
     """This is the main class of the program
@@ -25,7 +26,7 @@ class Client:
         except OSError as err:
             helpers.eprint(err)
         # except SocketNotConnected:
-            # helpers.eprint('socket not connected')
+        #     helpers.eprint('socket not connected')
 
     def __init__(self, screenObj):
         """Initialize the client with a screen object"""
@@ -35,5 +36,5 @@ class Client:
         self.irc = Irc('localhost', 6667, 'cat', 'cat', 'cat', self.get_messages)
 
         while 1: 
-            self.screen.do_read()
+            self.screen.get_input()
     

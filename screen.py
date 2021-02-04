@@ -1,4 +1,5 @@
 import helpers
+import random
 import textwrap # For wrapping lines to screen length
 import curses
 import curses.ascii
@@ -29,13 +30,11 @@ class Screen:
         curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_CYAN)
         curses.init_pair(3, curses.COLOR_MAGENTA, curses.COLOR_BLUE)
 
-    def put_line(self, text):
+    def put_line(self, line):
         """Adds a line to the internal list of lines
         TODO: Trim and keep a scroll back
         """
-        lines = textwrap.wrap(text, self.calls)
-        for line in lines:
-            self.lines.append(line)
+        self.lines.append(line)
         self.draw_screen()
 
     def draw_screen(self):
@@ -47,18 +46,31 @@ class Screen:
         self.draw_top_text()
         self.draw_input()
 
-        line = len(self.lines) - 1
+        # Use a random large number as at internal way to mark where to re split lines
+        # This introduces the possibility for a minor display bug extremely rarely
+        # TODO find a better way to do this
+        # random_number = random.randint(1111111,9999999)
+
+        # wrapped_lines = textwrap.wrap(str(random_number).join(self.lines), self.calls)
+        
+        # helpers.eprint(wrapped_lines)
+        # wrapped_lines.split(str(random_number))
+        wrapped_lines = []
+        for line in self.lines:
+            lines = textwrap.wrap(line, self.calls)
+            for line in lines:
+                wrapped_lines.append(line)
+
+        line = len(wrapped_lines) - 1
         i = 1 # Leave room for topic line
         while i < (self.rose - 2) and line >= 0:
-            self.screen.addstr(self.rose - 2 - i, 0, self.lines[line],
+            self.screen.addstr(self.rose - 2 - i, 0, wrapped_lines[line],
             curses.color_pair(1))
             i += 1
             line -= 1
 
         # Move the cursor to correct place on input line
-        # TODO: Make this dynamic
         self.screen.move(self.rose - 1, self.curs_pos)
-        
 
         self.screen.refresh()
 
@@ -85,7 +97,7 @@ class Screen:
         length = len(self.input)
         if length >= self.calls:
             start = length - self.calls - 1
-            end = start + self.calls - 1
+            end = start + self.calls
         else:
             start = 0
             end = length
@@ -94,8 +106,8 @@ class Screen:
         except:
             helpers.eprint(start, end, self.calls)
             
-    def do_read(self):
-        """Get input. This should be executed in its own thread?"""
+    def get_input(self):
+        """Get input. Non blocking """
         curses.noecho()
         c = self.screen.getch() # read a character
         if str(c) == curses.KEY_BACKSPACE or c == 127 and len(self.input) > 0:
@@ -109,6 +121,10 @@ class Screen:
             self.send_callback(self.input)
             self.input = ""
             self.curs_pos = 0
+
+        elif c == curses.KEY_RESIZE:
+            # Get new dimensions
+            self.rose, self.calls = self.screen.getmaxyx()
 
         elif curses.ascii.isprint(c):
             try:

@@ -11,9 +11,14 @@
 # import threading
 import client
 import curses
+import logging
 
 def main(screenObj):
     """Stub that creates a Client object"""
+    # Set up logging
+    logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', datefmt='%H:%M:%S'
+    filename='wiggle.log', encoding='utf-8', level=logging.DEBUG)
+    logging.debug('test')
     c = client.Client(screenObj)
 
 if __name__== "__main__":

@@ -4,6 +4,7 @@
 import socket
 import helpers
 import asyncio
+from exceptions import *
 
 ENCODING = 'UTF-8'       # The method for encoding and decoding all messages (UTF-8 allows 4 bytes max per char)
 LINE_ENDINGS = '\r\n'    # This is appended to all messages sent by the socket (should always be CRLF)
@@ -118,21 +119,3 @@ class IrcSocket:
 
             # self.socket.setblocking(1)
             return lines
-
-
-
-class SocketAlreadyConnected(OSError):
-    def __init__(self, message='A duplicate connection attempt was made', errors=None):
-        super().__init__(message, errors)
-
-class SocketTimeout(OSError):
-    def __init__(self, message='Connection failed: Socket timed out', errors=None):
-        super().__init__(message, errors)
-
-class SocketNotConnected(OSError):
-    def __init__(self, message='You attempted to send/receive data, but socket isn\'t connected', errors=None):
-        super().__init__(message, errors)
-
-class SocketConnectionBroken(OSError):
-    def __init__(self, message='The socket connection broke unexpectedly', errors=None):
-        super().__init__(message, errors)

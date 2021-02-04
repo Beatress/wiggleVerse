@@ -3,6 +3,7 @@ import ircsocket
 import threading
 import helpers
 from ircsocket import IrcSocket
+from exceptions import *
 
 class Irc:
     """A class to manage channels and users on one IRC network
@@ -14,9 +15,9 @@ class Irc:
                 lines = self.socket.get_raw()
                 helpers.eprint('got raw data')
                 self.get_messages_callback(lines)
-            # except SocketConnectionBroken:
-            #     helpers.eprint('Connection closed: Socket broke')
-            #     self.socket.disconnect()
+            except SocketConnectionBroken:
+                helpers.eprint('Connection closed: Socket broke')
+                self.socket.disconnect()
             except OSError as err:
                 helpers.eprint(err)     
             
@@ -34,6 +35,7 @@ class Irc:
         self.socket = IrcSocket()
         self.nick = nick
         self.get_messages_callback = get_messages_callback
+        self.connected = False
         # anything else needed to save
         # 
         # Try to connect
@@ -45,6 +47,7 @@ class Irc:
             # self.socket.put_raw('JOIN #test') # TODO remove
             self.receive_thread = threading.Thread(target=self.get_messages, daemon=True)
             self.receive_thread.start()
+            self.connected = True
 
         except OSError as err:
             helpers.eprint(err)
@@ -53,6 +56,7 @@ class Irc:
     def disconnect(self):
         """Shut down the socket and run clean up code"""
         try:
+            self.connected = False
             self.socket.disconnect()
         except OSError as err:
             helpers.eprint('IRC socket reported error closing.')
