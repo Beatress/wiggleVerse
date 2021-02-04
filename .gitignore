@@ -2,4 +2,4 @@ __pycache__
 .DS_Store
 .idea
 stderr.log
-server.log
+echo_server.py
