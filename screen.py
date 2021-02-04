@@ -58,7 +58,7 @@ class Screen:
         # Move the cursor to correct place on input line
         # TODO: Make this dynamic
         self.screen.move(self.rose - 1, self.curs_pos)
-        helpers.eprint(self.curs_pos, self.calls)
+        
 
         self.screen.refresh()
 
