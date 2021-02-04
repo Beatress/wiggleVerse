@@ -19,10 +19,7 @@ class Irc:
             #     self.socket.disconnect()
             except OSError as err:
                 helpers.eprint(err)     
-
             
-
-
     def __init__(self, host, port, nick, user, real, get_messages_callback, tag=False):
         """Create a new IRC instance
         Each instance represents one connection to one server"""
@@ -45,7 +42,7 @@ class Irc:
             self.socket.put_raw(f"USER {user} 0 * :{real}")
             # TODO Support alternate nick
             self.socket.put_raw(f"NICK {nick}")
-            self.socket.put_raw('JOIN #test') # TODO remove
+            # self.socket.put_raw('JOIN #test') # TODO remove
             self.receive_thread = threading.Thread(target=self.get_messages, daemon=True)
             self.receive_thread.start()
 

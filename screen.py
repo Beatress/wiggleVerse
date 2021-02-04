@@ -12,7 +12,7 @@ class Screen:
         self.screen = screenObj
         self.rose, self.calls = self.screen.getmaxyx()
         self.lines = []
-        self.top_text = 'WiggleChat v.03' # For channel topic and other
+        self.top_text = 'WiggleChat v0.1' # For channel topic and other
         self.status_bar = 'Let\'s Wiggle the World!'
         self.input = ""
         self.curs_pos = 0
@@ -94,7 +94,7 @@ class Screen:
         except:
             helpers.eprint(start, end, self.calls)
             
-    def doRead(self):
+    def do_read(self):
         """Get input. This should be executed in its own thread?"""
         curses.noecho()
         c = self.screen.getch() # read a character
