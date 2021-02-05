@@ -32,11 +32,11 @@ class IrcSocket:
         try:
             self.socket.connect((host, port))
 
-        except socket.timeout:
-            raise SocketTimeout
+        # except socket.timeout:
+        #     raise SocketTimeout
 
         except OSError as err:
-            error_message = 'Connection failed: {}'.format(err)
+            error_message = f"Connection failed: {err}"
             raise OSError(error_message)
 
         else: # Connection Successful!
@@ -52,12 +52,14 @@ class IrcSocket:
             self.socket.shutdown(socket.SHUT_RDWR)
 
         except OSError as err:
-            error_message = f"Disconnection failed: {err}"
-            raise OSError(error_message)
+            logging.info('Socket not closed cleanly')
 
         finally: # Run clean up code
-            logging.debug('Running socket clean up code')            
-            self.socket.close()
+            self.cleanup()
+
+    def cleanup(self):
+        logging.debug('Running socket clean up code')            
+        self.socket.close()
 
     def put_raw(self, text):
         """Attempts to send a raw command to the server"""
@@ -86,12 +88,11 @@ class IrcSocket:
             # If send works but returns 0 bytes, the connection was terminated
             if bytes_sent == 0:
                 self.connected = False
-                self.socket.close()
+                self.cleanup()
                 raise SocketConnectionBroken
         logging.debug('Sent successfully')
 
     def get_raw(self): 
-        # self.socket.setblocking(0)
         """Attempts to receive data from the IRC server
         Returns a list of lines"""
         if not self.connected:
@@ -117,5 +118,4 @@ class IrcSocket:
             text = data.decode(ENCODING)
             lines = text.split(LINE_ENDINGS)
 
-            # self.socket.setblocking(1)
             return lines
