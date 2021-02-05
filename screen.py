@@ -101,8 +101,7 @@ class Screen:
         else:
             start = 0
             end = length
-        try:
-            self.screen.addstr(self.rose-1, 0, self.input[start:end])
+        self.screen.addstr(self.rose-1, 0, self.input[start:end])
         # except:
         #     logging.debug(start, end, self.calls)
             
