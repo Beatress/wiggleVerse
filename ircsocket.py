@@ -2,7 +2,7 @@
 # Thanks Chad!
 
 import socket
-import helpers
+import logging
 import asyncio
 from exceptions import *
 
@@ -46,7 +46,7 @@ class IrcSocket:
     def disconnect(self):
         """Attempt to cleanly close the socket"""
         self.connected = False
-        helpers.eprint('Shutdown requested')
+        logging.info('Shutdown requested')
 
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
@@ -56,7 +56,7 @@ class IrcSocket:
             raise OSError(error_message)
 
         finally: # Run clean up code
-            helpers.eprint('Running socket clean up code')            
+            logging.debug('Running socket clean up code')            
             self.socket.close()
 
     def put_raw(self, text):
@@ -88,7 +88,7 @@ class IrcSocket:
                 self.connected = False
                 self.socket.close()
                 raise SocketConnectionBroken
-        helpers.eprint(f"Sent {bytes_sent} successfully")
+        logging.debug('Sent successfully')
 
     def get_raw(self): 
         # self.socket.setblocking(0)

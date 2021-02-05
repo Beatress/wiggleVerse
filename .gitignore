@@ -1,5 +1,5 @@
 __pycache__
 .DS_Store
 .idea
-stderr.log
+wiggle.log
 echo_server.py

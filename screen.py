@@ -1,4 +1,4 @@
-import helpers
+import logging
 import random
 import textwrap # For wrapping lines to screen length
 import curses
@@ -53,7 +53,7 @@ class Screen:
 
         # wrapped_lines = textwrap.wrap(str(random_number).join(self.lines), self.calls)
         
-        # helpers.eprint(wrapped_lines)
+        # logging.debug(wrapped_lines)
         # wrapped_lines.split(str(random_number))
         wrapped_lines = []
         for line in self.lines:
@@ -103,20 +103,20 @@ class Screen:
             end = length
         try:
             self.screen.addstr(self.rose-1, 0, self.input[start:end])
-        except:
-            helpers.eprint(start, end, self.calls)
+        # except:
+        #     logging.debug(start, end, self.calls)
             
     def get_input(self):
         """Get input. Non blocking """
         curses.noecho()
         c = self.screen.getch() # read a character
         if str(c) == curses.KEY_BACKSPACE or c == 127 and len(self.input) > 0:
-            helpers.eprint('backspace')
+            logging.debug('backspace')
             self.curs_pos -= 1
             self.input = self.input[:-1]
         
         elif str(c) == curses.KEY_ENTER or c == 10:
-            helpers.eprint('enter')
+            logging.debug('enter')
             self.put_line(self.input)
             self.send_callback(self.input)
             self.input = ""
@@ -132,29 +132,7 @@ class Screen:
                 if self.curs_pos < self.calls - 1:
                     self.curs_pos += 1
             except ValueError:
-                helpers.eprint('ValueError')
+                logging.debug('ValueError')
                 # Ignore certain special character codes for application start
 
         self.draw_screen()
-
-    # pad = curses.newpad(rose * 5, calls)
-
-    # def print_text():
-    #     pad.addstr('Autem sapiente laboriosam recusandae numquam enim atque nam. Aut iure et quia quos tempore nihil. Occaecati dolor quisquam ipsam et fugit id suscipit. Ipsa iure id praesentium voluptas sint cum mollitia possimus. Aut amet nulla sed quo labore. Soluta  provident enim ut magnam in. Aspernatur commodi rerum ipsa et. Neque laboriosam aperiam ut et. Magni delectus dignissimos aut vel sapiente aut itaque sint. Laborum laudantium iusto nihil cum assumenda.')
-    #     pad.addstr('Autem sapiente laboriosam recusandae numquam enim atque nam. Aut iure et quia quos tempore nihil. Occaecati dolor quisquam ipsam et fugit id suscipit. Ipsa iure id praesentium voluptas sint cum mollitia possimus. Aut amet nulla sed quo labore. Soluta  provident enim ut magnam in. Aspernatur commodi rerum ipsa et. Neque laboriosam aperiam ut et. Magni delectus dignissimos aut vel sapiente aut itaque sint. Laborum laudantium iusto nihil cum assumenda.')
-
-    #     pad.refresh(0,0, 0,0, max_rows -1, max_cols -1 )
-
-    # while True:
-    #     c = screen.getch()
-    #     if c == ord('d'):
-    #         screen.addstr("Wiggle The World!")
-    #     elif c == ord('q'):
-    #         break
-    #     elif c == ord('b'):
-    #         curses.beep()
-    #     elif c == ord('p'):
-    #         print_text()
-    #     elif c == ord('c'):
-    #         screen.move(0,0)
-    #     screen.refresh()

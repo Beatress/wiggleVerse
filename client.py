@@ -1,5 +1,5 @@
 import curses
-import helpers
+import logging
 import screen
 import irc
 from irc import Irc
@@ -22,11 +22,11 @@ class Client:
         try:
             self.irc.send_raw(line)
         # except SocketTimeout:
-        #     helpers.eprint('socket timeout')
+        #     logging.warning('Socket timeout')
         except OSError as err:
-            helpers.eprint(err)
+            logging.warning(err)
         # except SocketNotConnected:
-        #     helpers.eprint('socket not connected')
+        #     logging.debug('socket not connected')
 
     def __init__(self, screenObj):
         """Initialize the client with a screen object"""

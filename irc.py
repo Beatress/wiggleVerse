@@ -1,7 +1,7 @@
 import socket
 import ircsocket
 import threading
-import helpers
+import logging
 from ircsocket import IrcSocket
 from exceptions import *
 
@@ -13,13 +13,13 @@ class Irc:
         while 1:
             try:
                 lines = self.socket.get_raw()
-                helpers.eprint('got raw data')
+                # logging.debug('got raw data')
                 self.get_messages_callback(lines)
             except SocketConnectionBroken:
-                helpers.eprint('Connection closed: Socket broke')
+                logging.error('Connection closed: Socket broke')
                 self.socket.disconnect()
             except OSError as err:
-                helpers.eprint(err)     
+                logging.error(err)     
             
     def __init__(self, host, port, nick, user, real, get_messages_callback, tag=False):
         """Create a new IRC instance
@@ -50,7 +50,7 @@ class Irc:
             self.connected = True
 
         except OSError as err:
-            helpers.eprint(err)
+            logging.warning(err)
         # TODO handle failures better
 
     def disconnect(self):
@@ -59,20 +59,20 @@ class Irc:
             self.connected = False
             self.socket.disconnect()
         except OSError as err:
-            helpers.eprint('IRC socket reported error closing.')
+            logging.warning('IRC socket reported error closing.')
         finally:
             # clean up code goes here
-            helpers.eprint('IRC connection lost')
+            logging.info('IRC connection lost')
             pass
 
     def send_raw(self, message):
         try:
             self.socket.put_raw(message)
         except SocketConnectionBroken:
-            helpers.eprint('Connection closed: Socket broke')
+            logging.warning('Connection closed: Socket broke')
             self.socket.disconnect()
         except OSError as err:
-            helpers.eprint(err)        
+            logging.debug(err)        
 
 
     
