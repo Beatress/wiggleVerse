@@ -9,17 +9,20 @@ class Irc:
     """A class to manage channels and users on one IRC network
     This class is a wrapper for the IrcSocket class
     """
-    def get_messages(self):
+    def get_messages(self, stop):
         while 1:
+            if stop:
+                logging.info('Receive thread sent stop signal')
+                break
             try:
                 lines = self.socket.get_raw()
-                # logging.debug('got raw data')
                 self.get_messages_callback(lines)
-            except SocketConnectionBroken:
-                logging.error('Connection closed: Socket broke')
-                self.socket.disconnect()
             except OSError as err:
-                logging.error(err)     
+                logging.error(err)
+                self.disconnect()
+                logging.info('Socket error in receive thread, stopping...')
+                break
+
             
     def __init__(self, host, port, nick, user, real, get_messages_callback, tag=False):
         """Create a new IRC instance
@@ -45,12 +48,14 @@ class Irc:
             # TODO Support alternate nick
             self.socket.put_raw(f"NICK {nick}")
             # self.socket.put_raw('JOIN #test') # TODO remove
-            self.receive_thread = threading.Thread(target=self.get_messages, daemon=True)
+            self.stop_thread = False # used to stop the thread when connection dies
+            self.receive_thread = threading.Thread(target=self.get_messages, args=(self.stop_thread,), daemon=True)
             self.receive_thread.start()
             self.connected = True
 
         except OSError as err:
-            logging.warning(err)
+            logging.error(err)
+            self.disconnect()
         # TODO handle failures better
 
     def disconnect(self):
@@ -63,7 +68,9 @@ class Irc:
         finally:
             # clean up code goes here
             logging.info('IRC connection lost')
-            pass
+            self.connected = False
+            self.stop_thread = True
+            # self.receive_thread.join()
 
     def send_raw(self, message):
         try:
@@ -72,7 +79,10 @@ class Irc:
             logging.warning('Connection closed: Socket broke')
             self.socket.disconnect()
         except OSError as err:
-            logging.debug(err)        
+            logging.debug(err)
+
+    def is_connected(self):
+        return self.connected
 
 
     

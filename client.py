@@ -2,6 +2,7 @@ import curses
 import logging
 import screen
 import irc
+import time
 from irc import Irc
 from ircsocket import IrcSocket
 from screen import Screen
@@ -19,14 +20,20 @@ class Client:
 
     def send_callback(self, line):
         # Callback for screen
-        try:
-            self.irc.send_raw(line)
-        # except SocketTimeout:
-        #     logging.warning('Socket timeout')
-        except OSError as err:
-            logging.warning(err)
-        # except SocketNotConnected:
-        #     logging.debug('socket not connected')
+        if line == "/quit":
+            logging.info('User requested quit')
+            self.irc.disconnect()
+        elif line == "/easter":
+            self.screen.put_line("egg")
+        else:
+            try:
+                self.irc.send_raw(line)
+            # except SocketTimeout:
+            #     logging.warning('Socket timeout')
+            except OSError as err:
+                logging.warning(err)
+            # except SocketNotConnected:
+            #     logging.debug('socket not connected')
 
     def __init__(self, screenObj):
         """Initialize the client with a screen object"""
@@ -35,6 +42,13 @@ class Client:
         # TODO break this out
         self.irc = Irc('localhost', 6667, 'cat', 'cat', 'cat', self.get_messages)
 
-        while 1: 
+        # while 1: 
+        while 1:
             self.screen.get_input()
+            if not self.irc.is_connected():
+                self.screen.put_line('Connection lost. Quitting...')
+                time.sleep(2)
+                break
+            # else:
+            #     self.screen.get_input()
     

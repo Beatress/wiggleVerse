@@ -5,6 +5,8 @@ import curses
 import curses.ascii
 import ircsocket
 
+LONG_LINE_BUFFER = 3 # How much room to leave at the right side of input box for long lines in cols
+
 class Screen:
     """Abstraction class for a curses screen
     Takes a screen object as parameters
@@ -13,12 +15,12 @@ class Screen:
         self.screen = screenObj
         self.rose, self.calls = self.screen.getmaxyx()
         self.lines = []
-        self.top_text = 'WiggleChat v0.1' # For channel topic and other
+        self.top_text = 'wiggleVerse v0.15' # For channel topic and other
         self.status_bar = 'Let\'s Wiggle the World!'
         self.input = ""
-        self.curs_pos = 0
-        self.screen.nodelay(0) # Makes input calls non-blocking
+        self.screen.nodelay(True) # Makes input calls non-blocking
         self.send_callback = send_callback
+        self.quit_signal = False
 
         # create color pairs
         """
@@ -70,7 +72,12 @@ class Screen:
             line -= 1
 
         # Move the cursor to correct place on input line
-        self.screen.move(self.rose - 1, self.curs_pos)
+        if len(self.input) + LONG_LINE_BUFFER >= self.calls:
+            curs_pos = self.calls - LONG_LINE_BUFFER
+        else:
+            curs_pos = len(self.input)
+
+        self.screen.move(self.rose - 1, curs_pos)
 
         self.screen.refresh()
 
@@ -95,44 +102,43 @@ class Screen:
         """Draws the input text
         This keeps track of the current line being typed"""
         length = len(self.input)
-        if length >= self.calls:
-            start = length - self.calls - 1
-            end = start + self.calls
+        if length + LONG_LINE_BUFFER >= self.calls:
+            start = (length + LONG_LINE_BUFFER) - self.calls
+            end = start + self.calls - 1
         else:
             start = 0
             end = length
-        try:
-            self.screen.addstr(self.rose-1, 0, self.input[start:end])
-        # except:
-        #     logging.debug(start, end, self.calls)
+        self.screen.addstr(self.rose-1, 0, self.input[start:end])
+        # logging.debug(f'{start}, {end}, {end-start}, {self.calls}')
             
     def get_input(self):
         """Get input. Non blocking """
-        curses.noecho()
         c = self.screen.getch() # read a character
-        if str(c) == curses.KEY_BACKSPACE or c == 127 and len(self.input) > 0:
-            logging.debug('backspace')
-            self.curs_pos -= 1
+        if c == curses.KEY_BACKSPACE or c ==127 and len(self.input) > 0:
             self.input = self.input[:-1]
         
-        elif str(c) == curses.KEY_ENTER or c == 10:
-            logging.debug('enter')
-            self.put_line(self.input)
+        elif c == curses.KEY_ENTER or c == 10 or c == 13:
+            # self.put_line(self.input)
             self.send_callback(self.input)
             self.input = ""
-            self.curs_pos = 0
 
         elif c == curses.KEY_RESIZE:
             # Get new dimensions
             self.rose, self.calls = self.screen.getmaxyx()
 
-        elif curses.ascii.isprint(c):
-            try:
-                self.input = self.input + chr(c)
-                if self.curs_pos < self.calls - 1:
-                    self.curs_pos += 1
-            except ValueError:
-                logging.debug('ValueError')
-                # Ignore certain special character codes for application start
+        elif c == -1:
+            return None
 
+        # elif c == ord('q'):
+        #     self.quit()
+
+        # Printable ASCII only for now...
+        # This also helps us ignore various terminal signals
+        elif curses.ascii.isprint(c): 
+            self.input = self.input + chr(c)
+        
         self.draw_screen()
+
+    def quit(self):
+        logging.info('quit sent')
+        self.quit_signal = True
