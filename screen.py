@@ -17,7 +17,7 @@ class Screen:
         self.screen = screenObj
         self.rose, self.calls = self.screen.getmaxyx()
         self.lines = []
-        self.top_text = 'WiggleChat v0.15' # For channel topic and other
+        self.top_text = 'WiggleChat v0.39' # For channel topic and other
         self.status_bar = 'Let\'s Wiggle the World!'
         self.input = ""
         self.position = 0 # Stores how far back we are looking in scroll back
