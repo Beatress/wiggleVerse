@@ -20,14 +20,13 @@ class Irc:
                     buffer.put(line)
             except OSError as err:
                 logging.error(err)
-                self.disconnect()
+                # self.disconnect()
                 logging.info('[IRC] Socket error in receive thread, stopping...')
                 break
             
     def __init__(self, host, port, nick, user, real, get_messages_callback, buffer, tag=False):
         """Create a new IRC instance
         Each instance represents one connection to one server"""
-        self.socket = IrcSocket()
         self.host = host
         self.port = port
         self.nick = nick
@@ -48,6 +47,7 @@ class Irc:
     def connect(self):
         # Try to connect
         try:
+            self.socket = IrcSocket()
             self.socket.connect(self.host, self.port)
             self.socket.put_raw(f"USER {self.user} 0 * :{self.real}")
             # TODO Support alternate nick
@@ -66,15 +66,15 @@ class Irc:
     def disconnect(self):
         """Shut down the socket and run clean up code"""
         try:
+            logging.debug('[IRC] Disconnection process started')
             self.connected = False
+            self.stop_thread = True # failsafe
             self.socket.disconnect()
         except OSError as err:
             logging.warning('[IRC] IRC socket reported error closing.')
         finally:
-            # clean up code goes here
-            logging.info('[IRC] IRC connection lost')
-            self.connected = False
-            self.stop_thread = True
+            logging.info('[IRC] IRC connection closed')
+            logging.debug('[IRC] Disconnection process finished')
 
     def send_raw(self, message):
         try:

@@ -126,7 +126,7 @@ class Screen:
                 self.input = self.input[:-1]
             
             elif c == curses.KEY_ENTER or c == 10 or c == 13:
-                self.put_line(self.input)
+                logging.debug(f"[SCREEN] {self.input}")
                 self.do_command(self.input)
                 self.input = ""
 

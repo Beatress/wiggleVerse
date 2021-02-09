@@ -34,11 +34,15 @@ class Client:
         #         pass
 
     def do_command(self, line):
+        # TODO spinoff
         """This is a call back for screen
         It executes the command the user typed"""
         if line == "/disconnect":
-            logging.info('[Client] User requested disconnect')
-            self.irc.disconnect()
+            if self.irc.is_connected():
+                logging.info('[Client] User requested disconnect')
+                self.irc.disconnect()
+            else:
+                self.screen.put_line('You are not connected')
         elif line == "/connect":
             self.irc.connect()
         elif line == "/quit":
@@ -46,7 +50,7 @@ class Client:
             self.quit_signal.set() # Signals to main thread to quit
         elif line == "/easter":
             self.screen.put_line("egg")
-        else:
+        elif self.irc.is_connected():
             try:
                 self.irc.send_raw(line)
             # except SocketTimeout:
