@@ -52,7 +52,6 @@ class Irc:
             self.socket.put_raw(f"USER {self.user} 0 * :{self.real}")
             # TODO Support alternate nick
             self.socket.put_raw(f"NICK {self.nick}")
-            # self.socket.put_raw('JOIN #test') # TODO remove
             self.stop_thread = False # used to stop the thread when connection dies
             self.receive_thread = threading.Thread(target=self.get_messages, args=(self.stop_thread, self.buffer,), daemon=True)
             self.receive_thread.start()
