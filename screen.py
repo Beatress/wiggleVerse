@@ -4,23 +4,29 @@ import textwrap # For wrapping lines to screen length
 import curses
 import curses.ascii
 import ircsocket
+import threading
 
+MAX_SCROLLBACK = 1000 # How many lines of scrollback to store
 LONG_LINE_BUFFER = 3 # How much room to leave at the right side of input box for long lines in cols
 
 class Screen:
     """Abstraction class for a curses screen
     Takes a screen object as parameters
     """
-    def __init__(self, screenObj, send_callback):
+    def __init__(self, screenObj, do_command):
         self.screen = screenObj
         self.rose, self.calls = self.screen.getmaxyx()
         self.lines = []
         self.top_text = 'WiggleChat v0.15' # For channel topic and other
         self.status_bar = 'Let\'s Wiggle the World!'
         self.input = ""
+        self.position = 0 # Stores how far back we are looking in scroll back
         # self.screen.nodelay(True) # (Actually) makes input calls non-blocking
-        self.send_callback = send_callback
-        self.quit_signal = False
+        self.do_command = do_command # Callback
+        # Create a thread to get input
+        self.stop_thread = False # Used to stop the thread when needed
+        self.input_thread = threading.Thread(target=self.get_input, daemon=True)
+        self.input_thread.start()
 
         # create color pairs
         """
@@ -33,9 +39,11 @@ class Screen:
         curses.init_pair(3, curses.COLOR_MAGENTA, curses.COLOR_BLUE)
 
     def put_line(self, line):
-        """Adds a line to the internal list of lines
-        TODO: Trim and keep a scroll back
-        """
+        """Adds a line to the internal list of lines"""
+        # We store more lines than we plan on displaying because neither a list nor a queue was ideal
+        # Every five hundred lines we get rid of the oldest five hundred
+        if len(self.lines) >= MAX_SCROLLBACK + 500:
+            self.lines = self.lines[-MAX_SCROLLBACK:]
         self.lines.append(line)
         self.draw_screen()
 
@@ -102,7 +110,7 @@ class Screen:
         This keeps track of the current line being typed"""
         length = len(self.input)
         if length + LONG_LINE_BUFFER >= self.calls:
-            start = (length + LONG_LINE_BUFFER) - self.calls - 1
+            start = (length + LONG_LINE_BUFFER) - self.calls
             end = start + self.calls - 1
         else:
             start = 0
@@ -110,27 +118,25 @@ class Screen:
         self.screen.addstr(self.rose-1, 0, self.input[start:end])
             
     def get_input(self):
-        """Get input. Blocking for now """
-        c = self.screen.getch() # read a character
-        if c == curses.KEY_BACKSPACE or c == 127 and len(self.input) > 0:
-            self.input = self.input[:-1]
-        
-        elif c == curses.KEY_ENTER or c == 10 or c == 13:
-            self.put_line(self.input)
-            self.send_callback(self.input)
-            self.input = ""
+        while not self.stop_thread:
+            """Get input. Blocking for now (runs in a thread9) """
+            c = self.screen.getch() # read a character
 
-        elif c == curses.KEY_RESIZE:
-            # Get new dimensions
-            self.rose, self.calls = self.screen.getmaxyx()
+            if c == curses.KEY_BACKSPACE or c == 127 and len(self.input) > 0:
+                self.input = self.input[:-1]
+            
+            elif c == curses.KEY_ENTER or c == 10 or c == 13:
+                self.put_line(self.input)
+                self.do_command(self.input)
+                self.input = ""
 
-        # Printable ASCII only for now...
-        # This also helps us ignore various terminal signals
-        elif curses.ascii.isprint(c):
-            self.input = self.input + chr(c)
+            elif c == curses.KEY_RESIZE:
+                # Get new dimensions
+                self.rose, self.calls = self.screen.getmaxyx()
 
-        self.draw_screen()
+            # Printable ASCII only for now...
+            # This also helps us ignore various terminal signals
+            elif curses.ascii.isprint(c):
+                self.input = self.input + chr(c)
 
-        def quit(self):
-            logging.info('quit sent')
-            self.quit_signal = True
+            self.draw_screen()

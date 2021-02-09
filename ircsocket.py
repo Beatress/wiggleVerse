@@ -33,7 +33,7 @@ class IrcSocket:
             self.socket.connect((host, port))
 
         except OSError as err:
-            error_message = f"Connection failed: {err}"
+            error_message = f"[IRCSocket] Connection failed: {err}"
             raise OSError(error_message)
 
         else: # Connection Successful!
@@ -43,19 +43,19 @@ class IrcSocket:
     def disconnect(self):
         """Attempt to cleanly close the socket"""
         self.connected = False
-        logging.info('Shutdown requested')
+        logging.info('[IRCSocket] Shutdown requested')
 
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
 
         except OSError as err:
-            logging.info('Socket not closed cleanly')
+            logging.info('[IRCSocket] Socket not closed cleanly')
 
         finally: # Run clean up code
             self.cleanup()
 
     def cleanup(self):
-        logging.debug('Running socket clean up code')            
+        logging.debug('[IRCSocket] Running socket clean up code')            
         self.socket.close()
 
     def put_raw(self, text):
@@ -78,7 +78,7 @@ class IrcSocket:
             raise SocketTimeout
 
         except OSError as err:
-            error_message = f"Send failed: {err}"
+            error_message = f"[IRCSocket] Send failed: {err}"
             raise OSError(error_message)
 
         else:
@@ -87,7 +87,7 @@ class IrcSocket:
                 self.connected = False
                 self.cleanup()
                 raise SocketConnectionBroken
-        logging.debug('Sent successfully')
+        logging.debug('[IRCSocket] Sent successfully')
 
     def get_raw(self): 
         """Attempts to receive data from the IRC server
@@ -103,7 +103,7 @@ class IrcSocket:
             raise SocketTimeout
 
         except OSError as err:
-            error_message = f"Receive failed: {err}"
+            error_message = f"[IRCSocket] Receive failed: {err}"
             raise OSError(error_message)
 
         else: # We succeeded in receiving data

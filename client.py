@@ -1,4 +1,6 @@
+import queue
 import curses
+import sys
 import logging
 import screen
 import irc
@@ -8,6 +10,8 @@ from ircsocket import IrcSocket
 from screen import Screen
 import threading
 import time
+import threading
+from serverparser import ServerParser
 from exceptions import *
 
 class Client:
@@ -15,15 +19,31 @@ class Client:
     Each execution of the program will have only one client
     Each client has one screen and zero or more IRC classes"""
 
-    def get_messages(self, lines):
-        for line in lines:
-            self.screen.put_line(line)
+    def parse_messages(self):
+        while 1:
+            command = self.buffer.get() # Blocks until new message comes in
+            self.screen.put_line(ServerParser.parse_message(command))
 
-    def send_callback(self, line):
-        # Callback for screen
-        if line == "/quit":
-            logging.info('User requested quit')
+        # while 1:
+        #     # Get the latest item from the queue
+        #     try:
+        #         command = self.buffer.get(block=False)
+        #         # Parse the command the put the line on the screen            
+        #         self.screen.put_line(ServerParser.parse_message(command))
+        #     except queue.Empty:
+        #         pass
+
+    def do_command(self, line):
+        """This is a call back for screen
+        It executes the command the user typed"""
+        if line == "/disconnect":
+            logging.info('[Client] User requested disconnect')
             self.irc.disconnect()
+        elif line == "/connect":
+            self.irc.connect()
+        elif line == "/quit":
+            logging.info('[Client] User requested quit')
+            self.quit_signal.set() # Signals to main thread to quit
         elif line == "/easter":
             self.screen.put_line("egg")
         else:
@@ -36,18 +56,14 @@ class Client:
             # except SocketNotConnected:
             #     logging.debug('socket not connected')
 
-    def __init__(self, screenObj):
+    def __init__(self, screenObj, quit_signal):
         """Initialize the client with a screen object"""
-        self.screen = Screen(screenObj, self.send_callback)
+        # Create a signal that other threads can use to stop the program
+        self.buffer = queue.SimpleQueue()
+        self.screen = Screen(screenObj, self.do_command)
         self.screen.draw_screen()
-        # TODO break this oute
-        self.irc = Irc('wiggleland.fun', 6667, 'cat', 'cat', 'cat', self.get_messages)
-
-        # while 1: 
-        while 1:
-            self.screen.get_input()
-            if not self.irc.is_connected():
-                self.screen.put_line('Connection lost. Quitting...')
-                time.sleep(2)
-                break
-    
+        self.parse_message_thread = threading.Thread(target=self.parse_messages, daemon=True)
+        self.parse_message_thread.start()
+        self.quit_signal = quit_signal
+        self.screen.put_line('WWWelcome to the wwwiggleVerse!!!')
+        self.irc = Irc('localhost', 6667, 'cat', 'cat', 'cat', self.parse_messages, self.buffer) # TODO remove
