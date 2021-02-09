@@ -16,11 +16,7 @@ class Irc:
                 break
             try:
                 lines = self.socket.get_raw()
-                # logging.debug('got raw data')
                 self.get_messages_callback(lines)
-            # except SocketConnectionBroken:
-            #     logging.error('Connection closed: Socket broke')
-            #     self.socket.disconnect()
             except OSError as err:
                 logging.error(err)
                 self.disconnect()
@@ -51,7 +47,7 @@ class Irc:
             # TODO Support alternate nick
             self.socket.put_raw(f"NICK {nick}")
             # self.socket.put_raw('JOIN #test') # TODO remove
-            self.stop_thread = False
+            self.stop_thread = False # used to stop the thread when connection dies
             self.receive_thread = threading.Thread(target=self.get_messages, args=(self.stop_thread,), daemon=True)
             self.receive_thread.start()
             self.connected = True

@@ -32,9 +32,6 @@ class IrcSocket:
         try:
             self.socket.connect((host, port))
 
-        # except socket.timeout:
-        #     raise SocketTimeout
-
         except OSError as err:
             error_message = f"Connection failed: {err}"
             raise OSError(error_message)
@@ -112,7 +109,6 @@ class IrcSocket:
         else: # We succeeded in receiving data
             # If recv works but returns 0 bytes, the connection was terminated
             if data == b'': # 
-                self.connected = False
                 raise SocketConnectionBroken
 
             text = data.decode(ENCODING)
