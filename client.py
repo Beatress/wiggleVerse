@@ -7,6 +7,7 @@ from irc import Irc
 from ircsocket import IrcSocket
 from screen import Screen
 import threading
+import time
 from exceptions import *
 
 class Client:
@@ -39,8 +40,8 @@ class Client:
         """Initialize the client with a screen object"""
         self.screen = Screen(screenObj, self.send_callback)
         self.screen.draw_screen()
-        # TODO break this out
-        self.irc = Irc('localhost', 6667, 'cat', 'cat', 'cat', self.get_messages)
+        # TODO break this oute
+        self.irc = Irc('wiggleland.fun', 6667, 'cat', 'cat', 'cat', self.get_messages)
 
         # while 1: 
         while 1:
@@ -49,6 +50,4 @@ class Client:
                 self.screen.put_line('Connection lost. Quitting...')
                 time.sleep(2)
                 break
-            # else:
-            #     self.screen.get_input()
     

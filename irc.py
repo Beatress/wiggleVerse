@@ -22,7 +22,6 @@ class Irc:
                 self.disconnect()
                 logging.info('Socket error in receive thread, stopping...')
                 break
-
             
     def __init__(self, host, port, nick, user, real, get_messages_callback, tag=False):
         """Create a new IRC instance
@@ -70,16 +69,15 @@ class Irc:
             logging.info('IRC connection lost')
             self.connected = False
             self.stop_thread = True
-            # self.receive_thread.join()
 
     def send_raw(self, message):
         try:
             self.socket.put_raw(message)
-        except SocketConnectionBroken:
-            logging.warning('Connection closed: Socket broke')
-            self.socket.disconnect()
+        # except SocketConnectionBroken:
+        #     logging.warning('Connection closed: Socket broke')
+        #     self.socket.disconnect()
         except OSError as err:
-            logging.debug(err)
+            logging.error(f"Error sending: {err}")
 
     def is_connected(self):
         return self.connected

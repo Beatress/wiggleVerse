@@ -15,10 +15,10 @@ class Screen:
         self.screen = screenObj
         self.rose, self.calls = self.screen.getmaxyx()
         self.lines = []
-        self.top_text = 'wiggleVerse v0.15' # For channel topic and other
+        self.top_text = 'WiggleChat v0.15' # For channel topic and other
         self.status_bar = 'Let\'s Wiggle the World!'
         self.input = ""
-        self.screen.nodelay(True) # Makes input calls non-blocking
+        # self.screen.nodelay(True) # (Actually) makes input calls non-blocking
         self.send_callback = send_callback
         self.quit_signal = False
 
@@ -76,7 +76,6 @@ class Screen:
             curs_pos = self.calls - LONG_LINE_BUFFER
         else:
             curs_pos = len(self.input)
-
         self.screen.move(self.rose - 1, curs_pos)
 
         self.screen.refresh()
@@ -103,22 +102,21 @@ class Screen:
         This keeps track of the current line being typed"""
         length = len(self.input)
         if length + LONG_LINE_BUFFER >= self.calls:
-            start = (length + LONG_LINE_BUFFER) - self.calls
+            start = (length + LONG_LINE_BUFFER) - self.calls - 1
             end = start + self.calls - 1
         else:
             start = 0
             end = length
         self.screen.addstr(self.rose-1, 0, self.input[start:end])
-        # logging.debug(f'{start}, {end}, {end-start}, {self.calls}')
             
     def get_input(self):
-        """Get input. Non blocking """
+        """Get input. Blocking for now """
         c = self.screen.getch() # read a character
-        if c == curses.KEY_BACKSPACE or c ==127 and len(self.input) > 0:
+        if c == curses.KEY_BACKSPACE or c == 127 and len(self.input) > 0:
             self.input = self.input[:-1]
         
         elif c == curses.KEY_ENTER or c == 10 or c == 13:
-            # self.put_line(self.input)
+            self.put_line(self.input)
             self.send_callback(self.input)
             self.input = ""
 
@@ -126,19 +124,13 @@ class Screen:
             # Get new dimensions
             self.rose, self.calls = self.screen.getmaxyx()
 
-        elif c == -1:
-            return None
-
-        # elif c == ord('q'):
-        #     self.quit()
-
         # Printable ASCII only for now...
         # This also helps us ignore various terminal signals
-        elif curses.ascii.isprint(c): 
+        elif curses.ascii.isprint(c):
             self.input = self.input + chr(c)
-        
+
         self.draw_screen()
 
-    def quit(self):
-        logging.info('quit sent')
-        self.quit_signal = True
+        def quit(self):
+            logging.info('quit sent')
+            self.quit_signal = True

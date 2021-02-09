@@ -49,7 +49,8 @@ class IrcSocket:
             self.socket.shutdown(socket.SHUT_RDWR)
 
         except OSError as err:
-            logging.info(f'Not able to shut down socket cleanly')
+            logging.info('Socket not closed cleanly')
+
         finally: # Run clean up code
             self.cleanup()
 
@@ -84,7 +85,7 @@ class IrcSocket:
             # If send works but returns 0 bytes, the connection was terminated
             if bytes_sent == 0:
                 self.connected = False
-                self.socket.close()
+                self.cleanup()
                 raise SocketConnectionBroken
         logging.debug('Sent successfully')
 
