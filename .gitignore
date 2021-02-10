@@ -2,4 +2,4 @@ __pycache__
 .DS_Store
 .idea
 wiggle.log
-echo_server.py
+settings.json

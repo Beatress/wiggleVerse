@@ -56,25 +56,29 @@ class Screen:
         self.draw_top_text()
         self.draw_input()
 
-        # Use a random large number as at internal way to mark where to re split lines
-        # This introduces the possibility for a minor display bug extremely rarely
-        # TODO find a better way to do this
-        # random_number = random.randint(1111111,9999999)
-
-        # wrapped_lines = textwrap.wrap(str(random_number).join(self.lines), self.calls)
+        self.wrapped_lines = []
+        length = len(self.lines)
+        if length >= MAX_SCROLLBACK:
+            start = length - MAX_SCROLLBACK
+        else:
+            start = 0
         
-        # logging.debug(wrapped_lines)
-        # wrapped_lines.split(str(random_number))
-        wrapped_lines = []
-        for line in self.lines:
+        for line in self.lines[start:length-1]:
             lines = textwrap.wrap(line, self.calls)
             for line in lines:
-                wrapped_lines.append(line)
+                self.wrapped_lines.append(line)
 
-        line = len(wrapped_lines) - 1
+        # It should not be possible to change position to this value, but we are going to play it safe anyways
+        line = len(self.wrapped_lines) - 1 - self.position
+        if line < self.calls:
+            if len(self.wrapped_lines) > self.calls:
+                line = self.calls 
+            else:
+                line = len(self.wrapped_lines) - 1
+
         i = 1 # Leave room for topic line
         while i < (self.rose - 2) and line >= 0:
-            self.screen.addstr(self.rose - 2 - i, 0, wrapped_lines[line],
+            self.screen.addstr(self.rose - 2 - i, 0, self.wrapped_lines[line],
             curses.color_pair(1))
             i += 1
             line -= 1
@@ -133,6 +137,17 @@ class Screen:
             elif c == curses.KEY_RESIZE:
                 # Get new dimensions
                 self.rose, self.calls = self.screen.getmaxyx()
+
+            elif c == curses.KEY_PPAGE:
+                logging.debug(f'Position is {self.position}')
+                self.position += self.calls
+                self.position = len(self.wrapped_lines) if self.position > len(self.wrapped_lines) else None
+
+
+            elif c == curses.KEY_NPAGE:
+                logging.debug(f'Position is {self.position}')
+                self.position -= self.calls
+                self.position = 0 if self.position < 0 else None # Prevent going past end of log
 
             # Printable ASCII only for now...
             # This also helps us ignore various terminal signals

@@ -130,3 +130,4 @@ class Client:
         self.default_target = None
         self.irc = False
         self.screen.put_line('WWWelcome to the wwwiggleVerse!!!')
+        
