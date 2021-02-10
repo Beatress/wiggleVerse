@@ -4,18 +4,16 @@ import curses
 import sys
 import logging
 import screen
-import irc
+import threading
 import time
+
 from irc import Irc
 from ircsocket import IrcSocket
 from screen import Screen
-import threading
-import time
-import threading
 from serverparser import ServerParser
 from commandparser import CommandParser
 from exceptions import *
-import settings
+from settings import Settings
 
 class Client:
     """This is the main class of the program
@@ -26,15 +24,6 @@ class Client:
         while 1:
             command = self.buffer.get() # Blocks until new message comes in
             self.screen.put_line(self.server_parser.parse_message(command))
-
-        # while 1:
-        #     # Get the latest item from the queue
-        #     try:
-        #         command = self.buffer.get(block=False)
-        #         # Parse the command the put the line on the screen            
-        #         self.screen.put_line(ServerParser.parse_message(command))
-        #     except queue.Empty:
-        #         pass
 
     def do_command(self, line):
         """This is a call back for screen
@@ -53,6 +42,9 @@ class Client:
 
         
         """
+        if line == '':
+            return None
+
         parsed_command = self.command_parser.parse_command(line) # Returns a tuple
         if parsed_command[0] == 'disconnect':
             if self.irc and self.irc.is_connected():
@@ -116,18 +108,25 @@ class Client:
             self.screen.put_line(f'Unknown error parsing command: {line}')
 
     def __init__(self, screenObj, quit_signal):
-        """Initialize the client with a screen object"""
-        # Create a signal that other threads can use to stop the program
-        self.buffer = queue.SimpleQueue()
+        """Initialize all the things the client will need to control the entire user session"""
+        # initialize screen
         self.screen = Screen(screenObj, self.do_command)
         self.screen.draw_screen()
+        # Start listening for messages in the buffer
+        self.buffer = queue.SimpleQueue()
         self.parse_message_thread = threading.Thread(target=self.parse_messages, daemon=True)
         self.parse_message_thread.start()
+        # We are passed a signal to quit the program
         self.quit_signal = quit_signal
-        self.settings = settings.Settings()
+        # Initialize various helper classes
+        self.settings = Settings()
         self.server_parser = ServerParser()
         self.command_parser = CommandParser()
+        # Create state the client needs to track
         self.default_target = None
         self.irc = False
         self.screen.put_line('WWWelcome to the wwwiggleVerse!!!')
-        
+        for _ in range (4):
+            with open('test.txt') as f:
+                for line in f.readlines():
+                    self.screen.put_line(line)

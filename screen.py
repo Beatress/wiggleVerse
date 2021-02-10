@@ -6,6 +6,7 @@ import curses.ascii
 import ircsocket
 import threading
 
+PAGE_SCROLL_BORDER = 1 # How many lines from the previous page are kept when doing page up and page down
 MAX_SCROLLBACK = 1000 # How many lines of scrollback to store
 LONG_LINE_BUFFER = 3 # How much room to leave at the right side of input box for long lines in cols
 
@@ -31,8 +32,8 @@ class Screen:
         # create color pairs
         """
         1: Chat text
-        2: Status bar text 
-        3: Title bar text
+        2: Title bar text 
+        3: Status bar text
         """
         curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_CYAN)
@@ -51,54 +52,61 @@ class Screen:
         """Wrapper function for curses refresh()
         Redisplays topic line, chat log, status bar, and input window
         """
-        self.screen.clear()
-        self.draw_status()
-        self.draw_top_text()
-        self.draw_input()
+        try:
+            # We wrap this in a try block because if the terminal is very tiny (<4 wide) it will crash
+            self.screen.clear()
+            self.draw_status()
+            self.draw_top_text()
+            self.draw_input()
 
-        self.wrapped_lines = []
-        length = len(self.lines)
-        if length >= MAX_SCROLLBACK:
-            start = length - MAX_SCROLLBACK
-        else:
-            start = 0
-        
-        for line in self.lines[start:length-1]:
-            lines = textwrap.wrap(line, self.calls)
-            for line in lines:
-                self.wrapped_lines.append(line)
-
-        # It should not be possible to change position to this value, but we are going to play it safe anyways
-        line = len(self.wrapped_lines) - 1 - self.position
-        if line < self.calls:
-            if len(self.wrapped_lines) > self.calls:
-                line = self.calls 
+            self.wrapped_lines = []
+            length = len(self.lines)
+            if length >= MAX_SCROLLBACK:
+                start = length - MAX_SCROLLBACK
             else:
-                line = len(self.wrapped_lines) - 1
+                start = 0
+            
+            for line in self.lines[start:length]:
+                lines = textwrap.wrap(line, self.calls)
+                for line in lines:
+                    self.wrapped_lines.append(line)
 
-        i = 1 # Leave room for topic line
-        while i < (self.rose - 2) and line >= 0:
-            self.screen.addstr(self.rose - 2 - i, 0, self.wrapped_lines[line],
-            curses.color_pair(1))
-            i += 1
-            line -= 1
+            # It should not be possible to change position to this value, but we are going to play it safe anyways
+            line = len(self.wrapped_lines) - 1 - self.position
+            if line < self.rose:
+                if len(self.wrapped_lines) > self.rose:
+                    line = self.rose
+                else:
+                    line = len(self.wrapped_lines) - 1
 
-        # Move the cursor to correct place on input line
-        if len(self.input) + LONG_LINE_BUFFER >= self.calls:
-            curs_pos = self.calls - LONG_LINE_BUFFER
-        else:
-            curs_pos = len(self.input)
-        self.screen.move(self.rose - 1, curs_pos)
+            i = 1 # Leave room for topic line
+            while i < (self.rose - 2) and line >= 0:
+                self.screen.addstr(self.rose - 2 - i, 0, self.wrapped_lines[line],
+                curses.color_pair(1))
+                i += 1
+                line -= 1
 
-        self.screen.refresh()
+            # Move the cursor to correct place on input line
+            if len(self.input) + LONG_LINE_BUFFER >= self.calls:
+                curs_pos = self.calls - LONG_LINE_BUFFER
+            else:
+                curs_pos = len(self.input)
+            self.screen.move(self.rose - 1, curs_pos)
+
+            self.screen.refresh()
+        
+        except curses.error:
+            pass # Safely ignore curses errors (drawing out of bounds)
 
     def draw_status(self):
         """Draws the status""" 
         # Pad status text to fill background bar
         status_bar_filled = self.status_bar + " " * (self.calls - len(self.status_bar))
+        if self.position != 0:
+            status_bar_filled = status_bar_filled[0:-8] + '--MORE--' 
 
         self.screen.addstr(self.rose - 2, 0, status_bar_filled[:self.calls],
-        curses.color_pair(2))
+        curses.color_pair(3))
 
     def draw_top_text(self):
         """Draws the top text
@@ -107,7 +115,7 @@ class Screen:
         # Pad top text to fill background bar
         top_bar = self.top_text + " " * (self.calls - len(self.top_text))
         self.screen.addstr(0, 0, top_bar[:self.calls],
-        curses.color_pair(3))
+        curses.color_pair(2))
 
     def draw_input(self):
         """Draws the input text
@@ -130,7 +138,6 @@ class Screen:
                 self.input = self.input[:-1]
             
             elif c == curses.KEY_ENTER or c == 10 or c == 13:
-                logging.debug(f"[SCREEN] {self.input}")
                 self.do_command(self.input)
                 self.input = ""
 
@@ -138,16 +145,16 @@ class Screen:
                 # Get new dimensions
                 self.rose, self.calls = self.screen.getmaxyx()
 
-            elif c == curses.KEY_PPAGE:
-                logging.debug(f'Position is {self.position}')
-                self.position += self.calls
-                self.position = len(self.wrapped_lines) if self.position > len(self.wrapped_lines) else None
+            elif c == curses.KEY_PPAGE: # Page up
+                self.position += self.rose - 3 - PAGE_SCROLL_BORDER
+                # Prevent user from going above top of scroll back
+                if self.position + self.rose + 3 + PAGE_SCROLL_BORDER > len(self.wrapped_lines):
+                    self.position = len(self.wrapped_lines) - self.rose # Set scroll back at top
 
-
-            elif c == curses.KEY_NPAGE:
-                logging.debug(f'Position is {self.position}')
-                self.position -= self.calls
-                self.position = 0 if self.position < 0 else None # Prevent going past end of log
+            elif c == curses.KEY_NPAGE: # Page down
+                self.position -= self.rose - 3 - PAGE_SCROLL_BORDER
+                if self.position < 0: # Prevent going past end of log
+                    self.position = 0
 
             # Printable ASCII only for now...
             # This also helps us ignore various terminal signals
