@@ -109,4 +109,4 @@ class Irc:
         pass
 
     def nick(self, new_nick):
-
+        pass
