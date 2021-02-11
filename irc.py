@@ -102,11 +102,11 @@ class Irc:
     def get_tag(self):
         return self.tag
 
-    def join(self, channel):
-        pass
+    # def join(self, channel):
+    #     pass
 
-    def part(self, channel):
-        pass
+    # def part(self, channel):
+    #     pass
 
-    def nick(self, new_nick):
-        pass
+    # def nick(self, new_nick):
+    #     pass

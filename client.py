@@ -28,7 +28,7 @@ class Client:
                 self.default_target = None
                 self.connected = False
                 continue
-            self.screen.put_line(self.server_parser.parse_message(command))
+            self.screen.put_line(self.server_parser.parse_message(message))
 
     def try_send_raw(self, text):
         try:
@@ -54,9 +54,9 @@ class Client:
         /list - Shows a list of available channels
         /names [channel] - Shows a list of names in the channel, or in the server if none given 
         /whois <nickname> - Shows information about the user
-        TODO: nick, join, part
-
-        
+        /nick <newnick> - Change your nickname
+        /join #<channel> - Join channel
+        /part #<channel> - Part channel        
         """
         if line == '':
             return None
@@ -121,7 +121,16 @@ class Client:
             if parsed_command[1] == '':
                 self.try_send_raw(f'NAMES *')
             else:
-                self.8try_send_raw(f'NAMES {parsed_command[1]}')
+                self.try_send_raw(f'NAMES {parsed_command[1]}')
+
+        elif parsed_command[0] == 'nick':
+            self.try_send_raw(f'NICK {parsed_command[1]}')
+
+        elif parsed_command[0] == 'join':
+            self.try_send_raw(f'JOIN {parsed_command[1]}')
+
+        elif parsed_command[0] == 'part':
+            self.try_send_raw(f'PART {parsed_command[1]}')
 
         elif parsed_command[0] == 'no_slash':
             if self.default_target == None:
