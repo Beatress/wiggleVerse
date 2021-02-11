@@ -74,9 +74,6 @@ class IrcSocket:
         try:
             bytes_sent = self.socket.sendall(message)
 
-        except socket.timeout:
-            raise SocketTimeout
-
         except OSError as err:
             error_message = f"[IRCSocket] Send failed: {err}"
             raise OSError(error_message)
@@ -98,9 +95,6 @@ class IrcSocket:
         try:
             self.socket.settimeout(RECV_TIMEOUT)
             data = self.socket.recv(MAX_RECV_BYTES)
-
-        except socket.timeout:
-            raise SocketTimeout
 
         except OSError as err:
             error_message = f"[IRCSocket] Receive failed: {err}"

@@ -34,16 +34,19 @@ class Screen:
         1: Chat text
         2: Title bar text 
         3: Status bar text
+        # 4: Client text
         """
         curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_CYAN)
         curses.init_pair(3, curses.COLOR_MAGENTA, curses.COLOR_BLUE)
+        # curses.init_pair(4, curses.COLOR_, curses.COLOR_BLACK)
 
     def put_line(self, line):
         """Adds a line to the internal list of lines"""
         # We store more lines than we plan on displaying because neither a list nor a queue was ideal
         # Every five hundred lines we get rid of the oldest five hundred
         if len(self.lines) >= MAX_SCROLLBACK + 500:
+            logging.debug(f'Pared lines at {len(self.lines)}')
             self.lines = self.lines[-MAX_SCROLLBACK:]
         self.lines.append(line)
         self.draw_screen()
@@ -67,24 +70,28 @@ class Screen:
                 start = 0
             
             for line in self.lines[start:length]:
+                # from_client = False # Keeps track of if the line came from client or server
+                # if line[0:2] == '>>':
+                #     from_client = True
                 lines = textwrap.wrap(line, self.calls)
                 for line in lines:
+                    # if from_client and line[0:2] != '>>':
+                    #     line = f'>>{line}'
                     self.wrapped_lines.append(line)
 
+            line = len(self.wrapped_lines) - self.position - 1
             # It should not be possible to change position to this value, but we are going to play it safe anyways
-            line = len(self.wrapped_lines) - 1 - self.position
-            if line < self.rose:
-                if len(self.wrapped_lines) > self.rose:
-                    line = self.rose
-                else:
-                    line = len(self.wrapped_lines) - 1
+            if line < 0:
+                line = 0
 
             i = 1 # Leave room for topic line
-            while i < (self.rose - 2) and line >= 0:
-                self.screen.addstr(self.rose - 2 - i, 0, self.wrapped_lines[line],
-                curses.color_pair(1))
-                i += 1
-                line -= 1
+
+            if len(self.wrapped_lines) >= 1:
+                while i < (self.rose - 2) and line >= 0:
+                    self.screen.addstr(self.rose - 2 - i, 0, self.wrapped_lines[line],
+                    curses.color_pair(1))
+                    i += 1
+                    line -= 1
 
             # Move the cursor to correct place on input line
             if len(self.input) + LONG_LINE_BUFFER >= self.calls:
@@ -94,9 +101,12 @@ class Screen:
             self.screen.move(self.rose - 1, curs_pos)
 
             self.screen.refresh()
+
+        except IndexError as e:
+            logging.debug(f'IndexError: {e}') # These should all be caused by having a very small terminal
         
-        except curses.error:
-            pass # Safely ignore curses errors (drawing out of bounds)
+        except curses.error as e:
+            logging.debug(f'IndexError: {e}') # Safely ignore curses errors (drawing out of bounds)
 
     def draw_status(self):
         """Draws the status""" 
@@ -148,9 +158,9 @@ class Screen:
             elif c == curses.KEY_PPAGE: # Page up
                 self.position += self.rose - 3 - PAGE_SCROLL_BORDER
                 # Prevent user from going above top of scroll back
-                if self.position + self.rose + 3 + PAGE_SCROLL_BORDER > len(self.wrapped_lines):
-                    self.position = len(self.wrapped_lines) - self.rose # Set scroll back at top
-
+                if self.position > len(self.wrapped_lines):
+                    self.position = len(self.wrapped_lines) - 1 # Set scroll back at top
+                    
             elif c == curses.KEY_NPAGE: # Page down
                 self.position -= self.rose - 3 - PAGE_SCROLL_BORDER
                 if self.position < 0: # Prevent going past end of log

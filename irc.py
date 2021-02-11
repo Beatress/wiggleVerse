@@ -17,10 +17,17 @@ class Irc:
             try:
                 lines = self.socket.get_raw()
                 for line in lines:
+                    # Handle ping and pong here
+                    if line[0:4] == 'PING':
+                        self.send_raw('PONG' + line[4:])
+                        logging.debug('Sent pong successfully')
+                        continue
                     buffer.put(line)
             except OSError as err:
                 logging.error(err)
-                # self.disconnect()
+                if self.connected:
+                    self.buffer.put(f'>>Error receiving messages: {err}')
+                    self.disconnect()
                 logging.info('[IRC] Socket error in receive thread, stopping...')
                 break
             
@@ -32,6 +39,7 @@ class Irc:
         self.nick = nick
         self.user = user
         self.real = real
+        self.channels = []
         self.get_messages_callback = get_messages_callback
         self.buffer = buffer
         self.connected = False
@@ -46,6 +54,8 @@ class Irc:
         
     def connect(self):
         # Try to connect
+        if self.connected:
+            buffer.put('>>We are already connected')
         try:
             self.socket = IrcSocket()
             self.socket.connect(self.host, self.port)
@@ -59,8 +69,8 @@ class Irc:
 
         except OSError as err:
             logging.error(err)
+            self.buffer.put(f'>>Connection failed due to error: {err}')
             self.disconnect()
-        # TODO handle failures better
 
     def disconnect(self):
         """Shut down the socket and run clean up code"""
@@ -74,18 +84,29 @@ class Irc:
         finally:
             logging.info('[IRC] IRC connection closed')
             logging.debug('[IRC] Disconnection process finished')
+            self.buffer.put('>>IRC connection lost')
+            self.buffer.put('[wiggleVerse] DROPCON')
 
     def send_raw(self, message):
         try:
             self.socket.put_raw(message)
-        # except SocketConnectionBroken:
-        #     logging.warning('Connection closed: Socket broke')
-        #     self.socket.disconnect()
         except OSError as err:
             logging.error(f"[IRC] Error sending: {err}")
+            buffer.put(f'>>Error sending message: {err}')
+            buffer.put('Disconnecting...')
+            self.disconnect()
 
     def is_connected(self):
         return self.connected
 
+    def get_tag(self):
+        return self.tag
 
-    
+    def join(self, channel):
+        pass
+
+    def part(self, channel):
+        pass
+
+    def nick(self, new_nick):
+
