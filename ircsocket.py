@@ -21,6 +21,7 @@ class IrcSocket:
         """Basic initialization of the socket"""
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connected = False
+        self.incomplete_line = None
 
     def connect(self, host, port):
         """Connects to an IRC server"""
@@ -106,6 +107,13 @@ class IrcSocket:
                 raise SocketConnectionBroken
 
             text = data.decode(ENCODING)
+            # logging.debug(f'{text}')
             lines = text.split(LINE_ENDINGS)
-
+            final_line = lines[len(lines)-1]
+            if self.incomplete_line:
+                lines[0] = self.incomplete_line + lines[0] # Complete the line
+                self.incomplete_line = None # Discard the bytes
+            if len(final_line) <= 4 or final_line[-4:] != '\r\n': # If the last line isn't complete
+                self.incomplete_line = final_line # Save it
+                lines = lines[0:len(lines)-1] # Don't return that line
             return lines

@@ -56,7 +56,8 @@ class Client:
         /whois <nickname> - Shows information about the user
         /nick <newnick> - Change your nickname
         /join #<channel> - Join channel
-        /part #<channel> - Part channel        
+        /part #<channel> - Part channel
+        /topic #<channel> - Get channel topic
         """
         if line == '':
             return None
@@ -128,9 +129,13 @@ class Client:
 
         elif parsed_command[0] == 'join':
             self.try_send_raw(f'JOIN {parsed_command[1]}')
+            self.try_send_raw(f'TOPIC {parsed_command[1]}')
 
         elif parsed_command[0] == 'part':
             self.try_send_raw(f'PART {parsed_command[1]}')
+
+        elif parsed_command[0] == 'topic':
+            self.try_send_raw(f'TOPIC *')
 
         elif parsed_command[0] == 'no_slash':
             if self.default_target == None:
