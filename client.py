@@ -57,7 +57,7 @@ class Client:
         /nick <newnick> - Change your nickname
         /join #<channel> - Join channel
         /part #<channel> - Part channel
-        /topic #<channel> - Get channel topic
+        /topic #<channel> - Get channel topic # TODO broken?
         """
         if line == '':
             return None
@@ -74,26 +74,31 @@ class Client:
                 self.screen.put_line('>>You are not connected')
 
         elif parsed_command[0] == 'reconnect':
-            if not self.connected and not self.irc.is_connected():
+            if not self.connected:
                 self.irc.connect()
                 if not self.irc.is_connected():
                     self.screen.put_line('>>Connection not successful')
                     self.connected = False
                 else:
                     self.connected = True
+            else:
+                self.screen.put_line('>>You are already connected')
 
         elif parsed_command[0] == 'connect':
-            self.screen.put_line('>>Attemping to connect...')
+            if not self.connected:
+                self.screen.put_line('>>Attemping to connect...')
 
-            self.irc = Irc(parsed_command[1], parsed_command[2], 
-            self.nick, self.user, self.real, self.parse_messages, self.buffer)
-            self.irc.connect()
-            # TODO support alternate nick
-            if not self.irc.is_connected():
-                self.screen.put_line('>>Connection not successful')
-                self.connected = False
+                self.irc = Irc(parsed_command[1], parsed_command[2], 
+                self.nick, self.user, self.real, self.parse_messages, self.buffer)
+                self.irc.connect()
+                # TODO support alternate nick
+                if not self.irc.is_connected():
+                    self.screen.put_line('>>Connection not successful')
+                    self.connected = False
+                else:
+                    self.connected = True
             else:
-                self.connected = True
+                self.screen.put_line('>>You are already connected')
 
         elif parsed_command[0] == 'quit':
             logging.info('[Client] User requested quit')
