@@ -8,8 +8,7 @@ import threading
 def main(screenObj):
     """Stub that creates a Client object"""
     # Set up logging
-    # TODO add %(asctime)s back to format
-    logging.basicConfig(format='[%(levelname)s] %(message)s', datefmt='%H:%M:%S',
+    logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s', datefmt='%H:%M:%S',
     filename='wiggle.log', encoding='utf-8', level=logging.DEBUG)
     logging.info('[START] ***Into the wiggleVerse we go...***')
     # Puts Client into a thread

@@ -17,8 +17,11 @@ class Settings:
             self.write_settings()
         
     def put(self, setting, value):
-        self.dictionary[setting] = value
-        write_settings()
+        try:
+            self.dictionary[setting] = value
+            self.write_settings()
+        except KeyError:
+            return False
 
     def get(self, setting):
         try:
@@ -26,6 +29,12 @@ class Settings:
         except KeyError:
             return False
 
+    def get_all(self):
+        strings = []
+        for key in self.dictionary:
+            strings.append(f'{key}: {self.dictionary[key]}')
+        return strings
+    
     def write_settings(self):
         with open('settings.json', 'w') as f:
             json.dump(self.dictionary, f)

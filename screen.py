@@ -5,6 +5,9 @@ import curses
 import curses.ascii
 import ircsocket
 import threading
+import time
+
+from time import strftime
 
 PAGE_SCROLL_BORDER = 1 # How many lines from the previous page are kept when doing page up and page down
 MAX_SCROLLBACK = 1000 # How many lines of scrollback to store
@@ -18,7 +21,7 @@ class Screen:
         self.screen = screenObj
         self.rose, self.calls = self.screen.getmaxyx()
         self.lines = []
-        self.top_text = 'WiggleChat v0.39' # For channel topic and other
+        self.top_text = 'wiggleVerse v0.39' # For channel topic and other
         self.status_bar = 'Let\'s Wiggle the World!'
         self.input = ""
         self.position = 0 # Stores how far back we are looking in scroll back
@@ -48,7 +51,12 @@ class Screen:
         if len(self.lines) >= MAX_SCROLLBACK + 500:
             logging.debug(f'Pared lines at {len(self.lines)}')
             self.lines = self.lines[-MAX_SCROLLBACK:]
-        self.lines.append(line)
+        if line != '':
+            time = strftime('%H:%M')
+            time = f'[{time}]'
+        else:
+            time = ''
+        self.lines.append(f'{time}{line}')
         self.draw_screen()
 
     def draw_screen(self):
@@ -172,3 +180,6 @@ class Screen:
                 self.input = self.input + chr(c)
 
             self.draw_screen()
+
+    def set_status(self, status):
+        self.status_bar = status

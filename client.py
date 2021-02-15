@@ -7,6 +7,7 @@ import screen
 import threading
 import time
 
+from time import strftime
 from irc import Irc
 from ircsocket import IrcSocket
 from screen import Screen
@@ -20,9 +21,19 @@ class Client:
     Each execution of the program will have only one client
     Each client has one screen and zero or more IRC classes"""
 
+    def set_nick(self, new_nick):
+        self.nick = new_nick
+        self.set_status()
+
+    def set_status(self):
+        connected = "Yes" if self.connected else 'No'
+        time = strftime('%H:%M')
+        self.screen.set_status(f'[{time}] Connected:{connected} Nick:{self.nick} Target:{self.default_target}')
+
     def parse_messages(self):
         while 1:
             message = self.buffer.get() # Blocks until new message comes in
+            self.set_status()
             
             if message == '[wiggleVerse] DROPCON': # signal from received thread that we have lost connection
                 self.default_target = None
@@ -32,6 +43,7 @@ class Client:
 
     def try_send_raw(self, text):
         try:
+            self.set_status()
             self.irc.send_raw(text)
         except OSError as err:
             logging.warning(err)
@@ -47,9 +59,11 @@ class Client:
         /disconnect - Disconnects from server
         /reconnect - Reconnects to the last server connected to
         /connect <host> [port] - Connects to the server using client settings for nick, user, real
-        /quit [message] - Quits program with quit message [message] # TODO implement quit message
+        /quit - Quits program
         /easter - Egg
         /raw <text> - Sends <text> to IRC server without processing
+        /switch - Change the default target to which messages without a slash are sent
+        NOTE: default target is changed on joining channel/using /msg manually
         /msg <recipient> <message> - Sends a message to recipient
         /list - Shows a list of available channels
         /names [channel] - Shows a list of names in the channel, or in the server if none given 
@@ -57,7 +71,8 @@ class Client:
         /nick <newnick> - Change your nickname
         /join #<channel> - Join channel
         /part #<channel> - Part channel
-        /topic #<channel> - Get channel topic # TODO broken?
+        /topic #<channel> - Get channel topic
+        /set
         """
         if line == '':
             return None
@@ -87,6 +102,7 @@ class Client:
         elif parsed_command[0] == 'connect':
             if not self.connected:
                 self.screen.put_line('>>Attemping to connect...')
+                self.screen.put_line('>>Timeout is 30 seconds.')
 
                 self.irc = Irc(parsed_command[1], parsed_command[2], 
                 self.nick, self.user, self.real, self.parse_messages, self.buffer)
@@ -114,13 +130,20 @@ class Client:
         elif parsed_command[0] == 'raw':
             self.try_send_raw(parsed_command[1])
 
+        elif parsed_command[0] == 'switch':
+            self.default_target = parsed_command[1]
+
         elif parsed_command[0] == 'msg':
             self.try_send_raw(f'PRIVMSG {parsed_command[1]} :{parsed_command[2]}')
+            self.default_target = parsed_command[1]
+            self.set_status()
+            self.screen.put_line(f'-{parsed_command[1]}- <{self.nick}> {parsed_command[2]}')
 
         elif parsed_command[0] == 'list':
             self.try_send_raw(f'LIST')
 
         elif parsed_command[0] == 'whois':
+            self.screen.put_line(f'*** WHOIS info for {parsed_command[1]} ***')
             self.try_send_raw(f'WHOIS {parsed_command[1]}')
 
         elif parsed_command[0] == 'names':
@@ -134,31 +157,57 @@ class Client:
 
         elif parsed_command[0] == 'join':
             self.try_send_raw(f'JOIN {parsed_command[1]}')
+            self.default_target = parsed_command[1]
             self.try_send_raw(f'TOPIC {parsed_command[1]}')
 
         elif parsed_command[0] == 'part':
             self.try_send_raw(f'PART {parsed_command[1]}')
+            if parsed_command[1] == self.default_target:
+                self.default_target = None
 
         elif parsed_command[0] == 'topic':
-            self.try_send_raw(f'TOPIC *')
+            self.try_send_raw(f'TOPIC {parsed_command[1]}')
 
         elif parsed_command[0] == 'no_slash':
             if self.default_target == None:
                 self.screen.put_line('>>No default target set')
             else:
-                self.irc.try_send_raw(f'PRIVMSG {self.default_target} :{line}')
+                self.try_send_raw(f'PRIVMSG {self.default_target} :{line}')
+                self.screen.put_line(f'-{self.default_target}- <{self.nick}> {line}')
+
+        elif parsed_command[0] == 'getset':
+            if parsed_command[1] == 'all':
+                strings = self.settings.get_all()
+                for line in strings:
+                    self.screen.put_line('>>' + line)
+            else:
+                result = self.settings.get(parsed_command[1])
+                if result:
+                    self.screen.put_line(f'>>{parsed_command[1]}: {result}')
+                else:
+                    self.screen.put_line(f'>>{parsed_command[1]}: No such setting')
+
+        elif parsed_command[0] == 'setset':
+            result = self.settings.put(parsed_command[1], parsed_command[2])
+            if result:
+                self.screen.put_line('>>Setting saved')
+            else:
+                self.screen.put_line('>>No such setting')
 
         elif parsed_command[0] == 'error':
             self.screen.put_line('>>' + parsed_command[1])
 
         else:
-            self.screen.put_line(f'>>Unknown error parsing command: {line}')
+            self.screen.put_line(f'>>Unknown error parsing command: {line}') 
 
+        self.set_status()
+        
     def reset_state(self):
         self.default_target = None
         self.nick = self.settings.get('nick') or 'Wiggler' + str(random.randint(111,999))
         self.user = self.settings.get('user') or 'wiggler'
         self.real = self.settings.get('real') or 'A Very Cool Wiggler!'
+        self.set_status()
 
     def __init__(self, screenObj, quit_signal):
         """Initialize all the things the client will need to control the entire user session"""
@@ -173,12 +222,13 @@ class Client:
         self.quit_signal = quit_signal
         # Initialize various helper classes
         self.settings = Settings()
-        self.server_parser = ServerParser()
         self.command_parser = CommandParser()
         # Create state the client needs to track
         self.irc = False
         self.connected = False
         self.reset_state()
+        # This needs to be done after reset_state()
+        self.server_parser = ServerParser(self.nick, self.set_nick)
         self.screen.put_line('>>WWWelcome to the wwwiggleVerse!!!')
         # for _ in range (3):
         #     with open('test.txt') as f:

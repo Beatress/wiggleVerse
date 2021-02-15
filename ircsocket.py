@@ -106,7 +106,7 @@ class IrcSocket:
             if data == b'': # 
                 raise SocketConnectionBroken
 
-            text = data.decode(ENCODING)
+            text = data.decode(ENCODING, errors='ignore')
             # logging.debug(f'{text}')
             lines = text.split(LINE_ENDINGS)
             final_line = lines[len(lines)-1]
