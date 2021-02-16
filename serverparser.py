@@ -40,7 +40,7 @@ class ServerParser:
         self.set_nick_callback = set_nick_callback
 
     def get_nick(self, host):
-        nick_format = re.compile(':\w*!')
+        nick_format = re.compile(':[\w\-_\[\]^|\\`{}]*!') # Allowable chars: A-Z a-z 0-9 & -_[]{}\^|`
         match = nick_format.match(host)
         if match:
             nick = match.group()
@@ -100,9 +100,11 @@ class ServerParser:
                 message = f'** {nick} has joined {channel[1:]}'
         elif split_message[1] == 'PRIVMSG': # chat messages
             nick = self.get_nick(split_message[0])
+            logging.debug(f'nick is {nick}')
             if nick:
                 channel = split_message[2]
-                message = split_message[3]
+                message = ' '.join(split_message[3:])
+                logging.debug(f'{message}')
                 if channel == self.nick:
                     message = f'-{nick}- <{nick}> {message[1:]}'
                 else:

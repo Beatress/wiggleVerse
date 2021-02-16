@@ -27,6 +27,10 @@ class CommandParser:
         else: # This is an attempted client command
             command = command[1:] # Remove the slash
             words = command.split(' ')
+            # Remove empty strings
+            for word in words:
+                words = [i for i in words if i]
+            logging.debug(f'{words}')
             first_word = words[0]
             opt_args = ['quit', 'disconnect', 'easter', 'list', 'reconnect', 'names', 'help', 'version']
             one_arg = ['raw', 'whois', 'nick', 'join', 'part', 'topic', 'switch']
