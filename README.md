@@ -2,15 +2,12 @@
 ## A terminal based IRC client to have wiggly discussions of great import
 
 ## About
----
 wiggleVerse is a single-server, single-window terminal-based IRC client built using only the Python standard library. It should run on any POSIX compliant operating system (macOS, Linux, BSD) that has a modern installation of Python. It was developed and tested using Python 3.9.1, but it should work with 3.7 or higher. It has not been tested on Windows at all and this usage should be considered unsupported.
 
 ## Installation
----
 Simply `git clone` and `python3 wiggleVerse.py` (on Linux). Alternately, on macOS, `chmod u+x wiggleVerse.py` and `./wiggleVerse.py`
 
 ## Commands
----
 ### Connecting and disconnecting
 
 ```
@@ -81,11 +78,9 @@ User selection of color theme
 Future development of this software is pending more free time.
 
 ## License
----
 wiggleVerse is licensed under the GNU GPLv2 and can be used in software licensed under the same or any later version. See the file COPYING for details.
 
 ## Credits
----
 * Thanks to [Mackenzie Weber](https://github.com/MWeberLambdaweb19) and Vespurr for testing
 * Thanks to Jupiter for unending cuteness
 * Thanks to Ada Academy for making me an amazing programmer!
