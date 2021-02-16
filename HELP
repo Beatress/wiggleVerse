@@ -1,0 +1,20 @@
+SUPPORTED COMMANDS:
+/disconnect - Disconnects from server
+/reconnect - Reconnects to the last server connected to
+/connect <host> [port] - Connects to the server using client settings for nick, user, real
+/quit - Quits program
+/raw <text> - Sends <text> to IRC server without processing
+/switch - Change the default target to which messages without a slash are sent
+NOTE: default target is changed on joining channel/using /msg manually
+/msg <recipient> <message> - Sends a message to recipient
+/list - Shows a list of available channels
+/names [channel] - Shows a list of names in the channel, or in the server if none given 
+/whois <nickname> - Shows information about the user
+/nick <newnick> - Change your nickname
+/join #<channel> - Join channel
+/part #<channel> - Part channel
+/topic #<channel> - Get channel topic
+/set - see all the settings
+/set <setting> - see the value for one setting
+/set <setting> <value> - change a setting
+/help - see this help message

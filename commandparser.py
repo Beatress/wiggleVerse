@@ -12,7 +12,7 @@ class CommandParser:
             command = command[1:] # Remove the slash
             words = command.split(' ')
             first_word = words[0]
-            opt_args = ['quit', 'disconnect', 'easter', 'list', 'reconnect', 'names']
+            opt_args = ['quit', 'disconnect', 'easter', 'list', 'reconnect', 'names', 'help']
             one_arg = ['raw', 'whois', 'nick', 'join', 'part', 'topic', 'switch']
             if opt_args.count(first_word) == 1:
                 return (first_word, ' '.join(words[-len(words)+1:]))

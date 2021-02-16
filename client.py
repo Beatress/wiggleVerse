@@ -6,6 +6,7 @@ import logging
 import screen
 import threading
 import time
+import os.path
 
 from time import strftime
 from irc import Irc
@@ -75,7 +76,10 @@ class Client:
         /join #<channel> - Join channel
         /part #<channel> - Part channel
         /topic #<channel> - Get channel topic
-        /set
+        /set - see all the settings
+        /set <setting> - see the value for one setting
+        /set <setting> <value> - change a setting
+        /help - see this help message
         """
         if line == '':
             return None
@@ -199,6 +203,15 @@ class Client:
                     self.reset_state()
             else:
                 self.screen.put_line(f'>>No such setting {parsed_command[1]}')
+
+        elif parsed_command[0] == 'help':
+            if os.path.isfile('HELP'):
+                self.screen.put_line('*** wiggleVerse help ***')
+                with open('HELP') as f:
+                    for line in f.readlines():
+                        self.screen.put_line(line)
+            else:
+                self.screen.put_line('>>HELP file missing! Check README.md')
 
         elif parsed_command[0] == 'error':
             self.screen.put_line('>>' + parsed_command[1])
