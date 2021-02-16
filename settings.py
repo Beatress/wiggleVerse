@@ -1,3 +1,4 @@
+import logging
 import random
 import json
 import os.path
@@ -18,8 +19,10 @@ class Settings:
         
     def put(self, setting, value):
         try:
+            self.dictionary[setting] # This will throw an exception if it fails
             self.dictionary[setting] = value
             self.write_settings()
+            return True
         except KeyError:
             return False
 

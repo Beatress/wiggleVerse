@@ -43,8 +43,11 @@ class Client:
 
     def try_send_raw(self, text):
         try:
-            self.set_status()
-            self.irc.send_raw(text)
+            if self.irc:
+                self.set_status()
+                self.irc.send_raw(text)
+            else:
+                self.screen.put_line('>>Not connected')
         except OSError as err:
             logging.warning(err)
             self.default_target = None
@@ -107,7 +110,7 @@ class Client:
                 self.irc = Irc(parsed_command[1], parsed_command[2], 
                 self.nick, self.user, self.real, self.parse_messages, self.buffer)
                 self.irc.connect()
-                # TODO support alternate nick
+
                 if not self.irc.is_connected():
                     self.screen.put_line('>>Connection not successful')
                     self.connected = False
@@ -190,9 +193,12 @@ class Client:
         elif parsed_command[0] == 'setset':
             result = self.settings.put(parsed_command[1], parsed_command[2])
             if result:
-                self.screen.put_line('>>Setting saved')
+                self.screen.put_line(f'>>Set {parsed_command[1]} to {parsed_command[2]}')
+                # if we are not connected, reset state for settings to take effect
+                if not self.irc:
+                    self.reset_state()
             else:
-                self.screen.put_line('>>No such setting')
+                self.screen.put_line(f'>>No such setting {parsed_command[1]}')
 
         elif parsed_command[0] == 'error':
             self.screen.put_line('>>' + parsed_command[1])

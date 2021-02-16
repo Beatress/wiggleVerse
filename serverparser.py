@@ -17,6 +17,7 @@ class ServerParser:
             '375': '***SERVER MESSAGE OF THE DAY***',
             '321': '***CHANNEL LISTING***',
             '331': '<<No topic set>>',
+            '433': 'Nickname taken. Pick another one with /nick <newnick>'
         }
         self.whois_codes = ['311', '319', '312', '313', '671', '318']
         self.nick = nick
@@ -48,6 +49,8 @@ class ServerParser:
 
             if numeric_code in self.replace_msgs:
                 message_body = self.replace_msgs[numeric_code]
+            elif numeric_code == '001': # update nick on registration
+                self.set_nick_callback(split_message[2])
             elif numeric_code == '372': # MOTD body
                 message_body = message_body[2:] # Remove '- '
             elif numeric_code == '353': # /names list
