@@ -17,6 +17,11 @@ def main(screenObj):
     c.start()
     quit_signal.wait() # Blocks until Client is ready to quit
     logging.info('[END] ***... and out we come***') 
+    # Keeping this for linux compatability over remote shells
+    curses.echo(1)
+    curses.nocbreak()
+    screenObj.keypad(False)
+    curses.endwin()
 
 
 if __name__== "__main__":
