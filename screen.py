@@ -25,6 +25,8 @@ import time
 
 from time import strftime
 
+# A selection of inspiration phrases
+PHRASES = ['Friends over TCP/IP', 'Better than the WWWorld WWWide WWWeb', 'Where to, pal?', "Taking frequent breaks is not only healthy, it's revolutionary!", "Don't throw away your graphics card... yet", 'That internet, I tell ya hwat', 'Chat With Kindness!', 'Pet the kitty SLOWLY in ONE direction', '*you hear some noises off in the distance*', 'Free Software under the GNU GPLv2!', '/connect chat.at.wiggleland.fun :^)', 'a Nutritious Part of a Balanced Wiggler!', 'Feed the Rush!', 'Remember to Hydrate!', 'Batteries Included!', 'Let It Go~ Let It Go~', '20% off at the WiggleCo store with code WGLVRS', "Bicycling is not only wiggly, it's eco-friendly!", 'You Are Brave!', 'You Are Strong!', 'Today Will Be a Great Day!', 'No Kids in Cages!', 'Thanks for testing wiggleVerse, Mack!', 'Change options with /set', 'Not responsible for any broken sockets', 'Jupiter says: feed cats 7 times a day', 'There is More to Life than IRC!', 'You deserve to take up space!', 'Built with only the Python Standard Library!', 'Trans Women are Women!', 'Hatsune Miku is a Diva!', 'Your Story is Valid!', 'Black Lives Matter!', 'Friendship is Magic!', 'Check the tall grass for Pokemon!', "Don't Forget to Wiggle Your Fangs Today!", 'No means No! No exceptions!', '', 'Consent is important!', 'Innovating a Dormant Protocol since 2021!', "Don't Wake Wiggler!", 'Wiggles are Good for Bodies in Motion!', 'Non-binary people are valid!', 'Thanks for testing wiggleVerse, Vespurr!', 'Send raw IRC commands with /raw', 'You Are Beautiful!', 'WiggleCo: Wiggling the World', 'You Are Valid!', 'Black Trans Lives Matter!', 'Wiggler says: sleep is good', 'Trans Men are Men!', 'wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww', "The Planet Can't Wait!", 'This space semi-intentionally left blank', 'Much Better Than 0.29!', 'Join the wiggleSociety', 'Wiggle the World!', 'There is an easter egg...', 'wiggleCoin up 40% today!', 'You Are Enough!']
 PAGE_SCROLL_BORDER = 1 # How many lines from the previous page are kept when doing page up and page down
 MAX_SCROLLBACK = 1000 # How many lines of scrollback to store
 LONG_LINE_BUFFER = 3 # How much room to leave at the right side of input box for long lines in cols
@@ -37,7 +39,6 @@ class Screen:
         self.screen = screenObj
         self.rose, self.calls = self.screen.getmaxyx()
         self.lines = []
-        self.top_text = 'wiggleVerse v0.39' # For channel topic and other
         self.status_bar = 'Let\'s Wiggle the World!'
         self.input = ""
         self.position = 0 # Stores how far back we are looking in scroll back
@@ -147,7 +148,9 @@ class Screen:
         This is usually used for the channel topic
         """ 
         # Pad top text to fill background bar
-        top_bar = self.top_text + " " * (self.calls - len(self.top_text))
+        minutes = int(strftime('%M'))
+        top_text = 'wiggleVerse 0.39 - ' + PHRASES[minutes] 
+        top_bar = top_text + " " * (self.calls - len(top_text))
         self.screen.addstr(0, 0, top_bar[:self.calls],
         curses.color_pair(2))
 

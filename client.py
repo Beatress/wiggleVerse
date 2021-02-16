@@ -136,6 +136,7 @@ class Client:
                     self.connected = False
                 else:
                     self.connected = True
+                    logging.info('[Client] Successfully connected')
             else:
                 self.screen.put_line('>>You are already connected')
 
