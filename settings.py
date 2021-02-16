@@ -20,9 +20,15 @@ class Settings:
     def put(self, setting, value):
         try:
             self.dictionary[setting] # This will throw an exception if it fails
+            if setting == 'nick' or setting == 'user':
+                value = value[0]
+            elif setting == 'real':
+                value = ' '.join(value)
+            else:
+                return False
             self.dictionary[setting] = value
             self.write_settings()
-            return True
+            return value
         except KeyError:
             return False
 

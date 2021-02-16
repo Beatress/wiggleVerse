@@ -44,8 +44,8 @@ class CommandParser:
                     return ('getset', 'all')
                 elif len(words) == 2: # get a setting
                     return ('getset', words[1])
-                elif len(words) == 3: # set a setting
-                    return ('setset', words[1], words[2])
+                elif len(words) >= 3: # set a setting
+                    return ('setset', words[1], words[2:])
                 else:
                     return ('error', 'Set: incorrect paramters')
                     

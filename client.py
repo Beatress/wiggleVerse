@@ -193,7 +193,7 @@ class Client:
         elif parsed_command[0] == 'setset':
             result = self.settings.put(parsed_command[1], parsed_command[2])
             if result:
-                self.screen.put_line(f'>>Set {parsed_command[1]} to {parsed_command[2]}')
+                self.screen.put_line(f'>>Set {parsed_command[1]} to {result}')
                 # if we are not connected, reset state for settings to take effect
                 if not self.irc:
                     self.reset_state()

@@ -9,7 +9,7 @@ def main(screenObj):
     """Stub that creates a Client object"""
     # Set up logging
     logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s', datefmt='%H:%M:%S',
-    filename='wiggle.log', encoding='utf-8', level=logging.INFO)
+    filename='wiggle.log', level=logging.INFO)
     logging.info('[START] ***Into the wiggleVerse we go...***')
     # Puts Client into a thread
     quit_signal = threading.Event()
