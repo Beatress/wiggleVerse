@@ -86,7 +86,7 @@ wiggleVerse is licensed under the GNU GPLv2 and can be used in software licensed
 
 ## Credits
 ---
-Thanks to [Mackenzie Weber](https://github.com/MWeberLambdaweb19) and Vespurr for testing
-Thanks to Jupiter for unending cuteness
-Thanks to Ada Academy for making me an amazing programmer!
-Thanks to Chad Steadman for the very clearly written [IRCSocket class](https://github.com/chad-steadman/python-irc-client/blob/master/ircsocket.py), which I used as an initial guide
+* Thanks to [Mackenzie Weber](https://github.com/MWeberLambdaweb19) and Vespurr for testing
+* Thanks to Jupiter for unending cuteness
+* Thanks to Ada Academy for making me an amazing programmer!
+* Thanks to Chad Steadman for the very clearly written [IRCSocket class](https://github.com/chad-steadman/python-irc-client/blob/master/ircsocket.py), which I used as an initial guide
