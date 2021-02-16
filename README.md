@@ -12,13 +12,14 @@ Simply `git clone` and `python3 wiggleVerse.py` (on Linux). Alternately, on macO
 
 ```
 /connect <host> [port] - Connects to the server using client settings for nick, user, real
+Port 6667 is the default port if none given
 /disconnect - Disconnects from server
 /reconnect - Reconnects to the last server connected to
 /quit - Quits program
 ```
 
 ### Chatting
-As this is a single window client, all messages from all channels will appear in one window. A user can message any channel or user using the `/msg` command. In addition, if a user types a message without any command, it will be sent to the default target. The default target can be changed with the `/switch` command manually. Also, when joining a channel, or using the `/msg` command manually, the default target is automatically changed for convenience.
+As this is a single window client, all messages from all channels will appear in one window. A user can message any channel or user using the `/msg` command. In addition, if a user types a message without any command, it will be sent to the default target. The default target can be changed with the `/switch` command manually. Also, when joining a channel or using the `/msg` command manually the default target is automatically changed for convenience.
 
 ```
 /switch - Change the default target to which messages without a slash are sent
@@ -42,38 +43,36 @@ For ease of use, aliases are provided for the most common commands. Any commands
 
 ### Settings and Help
 For convenience, the default user name, nickname, and 'real' name sent to the IRC server on connection are stored in a settings file `settings.json`. They can be modified using the following commands. If a settings file is not found, it will be created.
+```
 /set - See all the settings
 /set <setting> - See the value for one setting
 /set <setting> <value> - Change a setting
 /help - See a basic help message
+```
 
 ## Program Structure
-The main entry point is `wiggleVerse.py`. This stub initiates logging, creates a Client Object, and waits for a quit signal from the Client to cleanly close. It also uses the curses wrapper to easily set up and tear down the `curses` library for terminal interactivity
+The main entry point is `wiggleVerse.py`. This stub initiates logging, creates a Client object, and waits for a quit signal from the Client to cleanly close. It also uses the curses wrapper to easily set up and tear down the `curses` library for terminal interactivity
 
 From here on, the following classes are used:
-```
-Client - Initializes a Screen, IRC, Settings, CommandParser, and ServerParser class. Controls the whole show!
-CommandParser - Parses the commands that the user types
-Exceptions - Common file that defines some custom exceptions
-IRC - Controls the connection to an IRC network
-IRCSocket - Handles some lower level implementation details
-Screen - Handles all input and output on the terminal
-Settings - Controls setting, reading, and saving of user settings
-ServerParser - Formats incoming messages from the IRC server
-```
+* Client - Initializes a Screen, IRC, Settings, CommandParser, and ServerParser class. Controls the whole show!
+* CommandParser - Parses the commands that the user types
+* Exceptions - Common file that defines some custom exceptions
+* IRC - Controls the connection to an IRC network
+* IRCSocket - Handles some lower level implementation details
+* Screen - Handles all input and output on the terminal
+* Settings - Controls setting, reading, and saving of user settings
+* ServerParser - Formats incoming messages from the IRC server
 
 As of current, too much functionality is in the Client class. A future refactor would move more of it to the IRC class. This would be greatly helpful before trying to implement multiple server support.
 
 ## Future Features
 This is a rather bare bones client created as a capstone project for my software development academy. There are many features that I would have liked to develop, including but not limited to:
-```
-SSL support
-Multiple server support
-Multiple window support
-Support for all IRC functions
-Better handling of incoming messages (/me, colors, QUIT, etc)
-User selection of color theme
-```
+* SSL support
+* Multiple server support
+* Multiple window support
+* Support for all IRC functions
+* Better handling of incoming messages (/me, colors, QUIT, etc)
+* User selection of color theme
 
 Future development of this software is pending more free time.
 
