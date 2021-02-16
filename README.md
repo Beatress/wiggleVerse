@@ -54,14 +54,16 @@ For convenience, the default user name, nickname, and 'real' name sent to the IR
 The main entry point is `wiggleVerse.py`. This stub initiates logging, creates a Client object, and waits for a quit signal from the Client to cleanly close. It also uses the curses wrapper to easily set up and tear down the `curses` library for terminal interactivity
 
 From here on, the following classes are used:
-* Client - Initializes a Screen, IRC, Settings, CommandParser, and ServerParser class. Controls the whole show!
-* CommandParser - Parses the commands that the user types
-* Exceptions - Common file that defines some custom exceptions
-* IRC - Controls the connection to an IRC network
-* IRCSocket - Handles some lower level implementation details
-* Screen - Handles all input and output on the terminal
-* Settings - Controls setting, reading, and saving of user settings
-* ServerParser - Formats incoming messages from the IRC server
+```
+Client - Initializes a Screen, IRC, Settings, CommandParser, and ServerParser class. Controls the whole show!
+CommandParser - Parses the commands that the user types
+Exceptions - Common file that defines some custom exceptions
+IRC - Controls the connection to an IRC network
+IRCSocket - Handles some lower level implementation details
+Screen - Handles all input and output on the terminal
+Settings - Controls setting, reading, and saving of user settings
+ServerParser - Formats incoming messages from the IRC server
+```
 
 As of current, too much functionality is in the Client class. A future refactor would move more of it to the IRC class. This would be greatly helpful before trying to implement multiple server support.
 
