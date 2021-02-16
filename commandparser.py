@@ -1,3 +1,19 @@
+# Copyright Beatrice Tohni 2021
+""" This file is part of wiggleVerse.
+
+    wiggleVerse is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    wiggleVerse is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with wiggleVerse.  If not, see <https://www.gnu.org/licenses/>."""
+
 import logging
 
 class CommandParser:
@@ -12,7 +28,7 @@ class CommandParser:
             command = command[1:] # Remove the slash
             words = command.split(' ')
             first_word = words[0]
-            opt_args = ['quit', 'disconnect', 'easter', 'list', 'reconnect', 'names', 'help']
+            opt_args = ['quit', 'disconnect', 'easter', 'list', 'reconnect', 'names', 'help', 'version']
             one_arg = ['raw', 'whois', 'nick', 'join', 'part', 'topic', 'switch']
             if opt_args.count(first_word) == 1:
                 return (first_word, ' '.join(words[-len(words)+1:]))

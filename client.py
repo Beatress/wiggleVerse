@@ -1,3 +1,19 @@
+# Copyright Beatrice Tohni 2021
+""" This file is part of wiggleVerse.
+
+    wiggleVerse is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    wiggleVerse is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with wiggleVerse.  If not, see <https://www.gnu.org/licenses/>."""
+
 import random
 import queue
 import curses
@@ -204,6 +220,12 @@ class Client:
             else:
                 self.screen.put_line(f'>>No such setting {parsed_command[1]}')
 
+        elif parsed_command[0] == 'version':
+            self.screen.put_line('*** wiggleVerse version 0.39 ***')
+            self.screen.put_line('This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any later version.')
+            self.screen.put_line('This program is distributed in the hope that it will be useful,but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.')
+            self.screen.put_line('You should have received a copy of the GNU General Public License (as COPYING) along with this program.  If not, see <https://www.gnu.org/licenses/>.')
+
         elif parsed_command[0] == 'help':
             if os.path.isfile('HELP'):
                 self.screen.put_line('*** wiggleVerse help ***')
@@ -249,6 +271,7 @@ class Client:
         # This needs to be done after reset_state()
         self.server_parser = ServerParser(self.nick, self.set_nick)
         self.screen.put_line('>>WWWelcome to the wwwiggleVerse!!!')
+        self.screen.put_line('>>This is free software, type /version for details')
         # for _ in range (3):
         #     with open('test.txt') as f:
         #         for line in f.readlines():
