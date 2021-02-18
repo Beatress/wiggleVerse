@@ -112,7 +112,11 @@ class Client:
                 self.screen.put_line('>>You are not connected')
 
         elif parsed_command[0] == 'reconnect':
+            self.reset_state()
             if not self.connected:
+                self.irc.nick = self.nick
+                self.irc.user = self.user
+                self.irc.real = self.real
                 self.irc.connect()
                 if not self.irc.is_connected():
                     self.screen.put_line('>>Connection not successful')
@@ -123,6 +127,7 @@ class Client:
                 self.screen.put_line('>>You are already connected')
 
         elif parsed_command[0] == 'connect':
+            self.reset_state()
             if not self.connected:
                 self.screen.put_line('>>Attemping to connect...')
                 self.screen.put_line('>>Timeout is 30 seconds.')
