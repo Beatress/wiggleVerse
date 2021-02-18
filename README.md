@@ -68,6 +68,9 @@ ServerParser - Formats incoming messages from the IRC server
 
 As of current, too much functionality is in the Client class. A future refactor would move more of it to the IRC class. This would be greatly helpful before trying to implement multiple server support.
 
+## Known bug
+This application causes a small display bug in the terminal that it's ran in after `/quit` - you can close and reopen the terminal, or just type `reset` to fix it
+
 ## Future Features
 This is a rather bare bones client created as a capstone project for my software development academy. There are many features that I would have liked to develop, including but not limited to:
 * SSL support
